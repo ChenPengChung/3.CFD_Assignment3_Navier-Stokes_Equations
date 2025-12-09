@@ -1,0 +1,1448 @@
+\documentclass[12pt]{article}
+\usepackage[a4paper,margin=0.8in]{geometry} % 明確設定四邊
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\usepackage{titling} % 預設標題下移0.6in
+\usepackage{amsmath} % 數學方程式
+\usepackage{graphicx} %圖片
+\usepackage{float} % 在導言區，讓圖片強制插在原地
+\usepackage{xcolor} %字體加入顏色
+\usepackage{hyperref} % 引入網址
+\usepackage{physics} % 物理符號
+\usepackage{wrapfig} % 文字環繞圖
+\usepackage{array} % 表格對齊控制
+\usepackage{caption}
+
+\captionsetup{
+    labelfont={footnotesize,bf},    % 標籤：小字體+粗體
+   % 文字：小字體
+}
+% 手動定義中文數字（不含標點符號）
+\newcommand{\chinese}[1]{%
+  \ifcase#1 零\or 一\or 二\or 三\or 四\or 五\or 六\or 七\or 八\or 九\or 十\or
+  十一\or 十二\or 十三\or 十四\or 十五\or 十六\or 十七\or 十八\or 十九\or 二十\fi
+}
+
+% 重新定義章節編號格式
+\renewcommand{\thesection}{\chinese{\value{section}}}
+\renewcommand{\thesubsection}{\chinese{\value{section}}、\arabic{subsection}}
+\renewcommand{\theequation}{\chinese{\value{section}}.\arabic{equation}}
+\renewcommand{\thesubsubsection}{\chinese{\value{section}}、\arabic{subsection}.\arabic{subsubsection}}
+\renewcommand{\thefigure}{\chinese{\value{section}}.\arabic{figure}}
+
+% 讓方程式計數器在每個section重置
+\counterwithin{equation}{section}
+\setmainfont{Times New Roman}
+\setCJKmainfont{Kaiti TC}
+
+\setlength{\droptitle}{-1in} % 上移標題1in
+\title{1.assignment\_3.1.tex}
+\author{N-S方程的離散化與SIMPLE差分格式}
+\setcounter{section}{0}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+\section{N-S方程組的有限差分法}
+\subsection{N-S方程組的微分形式}
+Naiver-Stokes方程組的微分形式如下：包含連續方程式的微分形式、x方向動量方程式的微分形式與y方向動量方程式的微分形式。\\
+\noindent 若
+\[
+\begin{array}{l}
+    \text{(1)A流場為不可壓縮流場}\\[1.5ex]
+    \text{(2)A流場的流體為牛頓流體}\\[1.5ex]
+    \text{(3)(E(A流場)的(密度場))被定義為(非時變場)}\\[1.5ex]
+\end{array}
+\]
+\noindent 則，Navier-Stokes方程組的微分形式可表示為：
+
+(1)(S(C(A流場)的(二維連續方程式))的(微分形式)):
+\begin{equation}\begin{split}
+        \frac{\partial u}{\partial x} + \frac{\partial v}{\partial y} = 0 
+\end{split}\end{equation}
+
+上式及為(S(C(I不可壓縮流場)的(二維連續方程式))的(微分形式))\\
+而根據<<Computational Fluid Dynamics>>課本所採用的連續方程式，為密度場$\rho(\vec{r})$為非時變場下的連續方程式(我個人認為降低充分性，但還是遵照課本做法)
+\begin{equation}\begin{split}
+    \frac{\partial \rho u }{\partial x} + \frac{\partial\rho v }{\partial y} = 0
+\end{split}\end{equation}
+
+上式主要展現(3)(E(A流場)的(密度場))被定義為(非時變場):$\frac{\partial \rho}{\partial t} = 0$，耦合連續方程式：$\frac{\partial \rho}{\partial t} + \vec{\nabla}\cdot (\rho\vec{u})(\vec{r},t) = 0$\\
+\vspace{-1.9ex}
+
+(2)(S'(X(A流場)的(x方向二維動量方程式)的(微分形式)):
+\begin{equation}\begin{split}
+    \frac{\partial \rho u}{\partial t} + (\frac{\partial \rho u u}{\partial x} + \frac{\partial \rho uv}{\partial y}) = \mu(\frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2}) -\frac{\partial p}{\partial x} 
+\end{split}\end{equation}
+
+(3)(S''(Y(A流場)的(y方向二維動量方程式)的(微分形式)):
+\begin{equation}\begin{split}
+    \frac{\partial \rho v}{\partial t} +(\frac{\partial \rho uv}{\partial x} +\frac{\partial \rho v v}{\partial y}) =\mu(\frac{\partial^2 v}{\partial x^2} + \frac{\partial^2 v}{\partial y^2}) -\frac{\partial p}{\partial y} 
+\end{split}\end{equation}
+
+式(一.3)、(一.4)主要展現：(1)A流場為不可壓縮流場 $\frac{D\rho}{D t} = 0$，以及(2)A流場的流體為牛頓流體。
+\subsection{密度場$\rho(\vec{r},t)$的限制}
+
+\noindent 若且唯若
+\[
+\begin{array}{l}
+    (1)\frac{\partial \rho}{\partial t} + \vec{\nabla}\cdot (\rho\vec{u})(\vec{r},t) = 0 \cdots \text{continuity equation}\\[1.5ex]
+    (2)\vec{\nabla}\cdot (\rho\vec{u})(\vec{r},t) = 0\\[1.5ex]
+    (3)\vec{\nabla}\cdot (\vec{u})(\vec{r},t) = 0 \cdots \text{incompressible flow field}\\[1.5ex]
+\end{array}
+\]
+\noindent 則
+\[
+\begin{array}{l}
+    (1)\frac{\partial \rho}{\partial t} + \vec{\nabla}\cdot (\rho\vec{u})(\vec{r},t) = 0\cdots \text{continuity equation}\\[1.5ex]
+    \text{(2)(E(A流場)的(密度場))被定義為(N均勻場)}\\[1.5ex]
+    \text{(3)(E(A流場)的(密度場))被定義為(F非時變場)}\\[1.5ex]
+\end{array}
+\]
+
+\noindent 說明：
+
+由於A流場為密度非時變流動相應之流場且A流場為不可壓縮流場，則密度場為空間均勻靜場，且取密度場$\rho$為1.0。此外，此題假設流場的特徵速度$V = 1.0$，特徵長度$L = 1.0 $，因此，黏性應力的散度項中，$\mu$可以代換為雷諾數$\frac{1}{Re}$，因此有上三式作為$Navier-Stokes\ Equations$ 。注意：該流場為非穩態流場。
+\section{交錯網格}
+\begin{wrapfigure}{r}{0.25\textwidth} % 環繞8行，圖片在右側，寬度為40%文本寬度
+    \vspace{-20pt}
+    \includegraphics[width=0.26\textwidth]{1.png} % 圖片寬度為35%文本寬度
+    \centering
+    \caption{\footnotesize staggered grid}
+    \label{fig:staggered grid}
+\end{wrapfigure}
+
+在數值計算中，交錯網格（staggered grid）是一種重要的數值方法。這種方法將速度分量和壓力分別定義在不同的網格點上，可以有效避免數值振盪問題。圖\thefigure 顯示了二維流體微團的示意圖，其中速度分量 $u$ 和 $v$ 分別定義在網格的不同位置，而壓力 $p$ 則定義在網格中心。
+
+這種配置使得在離散化動量方程時，可以更準確地計算壓力梯度和速度散度，從而提高數值解的穩定性和準確性。交錯網格在 SIMPLE 算法中扮演著關鍵角色，是計算流體力學中常用的數值方法之一。
+
+\noindent 因此，在方程式離散上，套用了三種網格，將聯立方程組的主要變數分別定義在計算點$p(i,j)$的本點$(i,j)$，右邊界中心點$(i+\frac{1}{2},j)$，及上邊界中心點$(i,j+\frac{1}{2})$。
+\[
+\begin{array}{l}
+    \text{對於計算本點p(i,j)而言：}\\[1.5ex]
+    \text{(1)壓力場p定義在點(i,j)}\\[1.5ex]
+    \text{(2)速度場x分量u定義在點$(i+\frac{1}{2},j)$}\\[1.5ex]
+    \text{(3)速度場y分量v定義在點$(i,j+\frac{1}{2})$}\\[1.5ex]
+\end{array}
+\]
+\section{方程組的離散化}
+\subsection{連續方程式-Central Difference}
+\noindent 密度場為非時變場下的連續方程式為：
+\begin{equation}\begin{split}
+    D = \frac{\partial \rho u }{\partial x} + \frac{\partial\rho v }{\partial y} = 0
+\end{split}\end{equation}
+\noindent 近似取為：
+
+\noindent $C-E$：對於計算點本點$(i,j)$而言，採用中心差分格式：
+\begin{equation}\begin{split}
+    D_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n} - (\rho u)_{i-\frac{1}{2},j}^{n}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n} - (\rho v)_{i,j-\frac{1}{2}}^{n}}{\Delta y} = 0 \\
+\end{split}\end{equation}
+\noindent 上式及為(W(E(R(T非時變密度場)的(連續方程式))的(微分形式))的(空間精度二階中心差分格式))。
+\subsection{x方向動量方程式-SIMPLE算法中心差分格式}
+説明：動量方程式的等式左側有兩種形式：
+\begin{equation}\begin{split}
+    &(1)\rho \frac{D \vec{u}}{D t}\\[1.5ex]
+    &(2)\frac{\partial \rho \vec{u}}{\partial t} + \vec{\nabla}\cdot (\rho \vec{u} \otimes \vec{u}) \\
+\end{split}\end{equation}
+對上式聯立連續方程式：$$\frac{\partial \rho}{\partial t} + \vec{\nabla}\cdot (\rho\vec{u})(\vec{r},t) = 0 \cdots continuity\ equation$$可等價於下式(2)。
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{2.png} %
+    \caption{\footnotesize Computational module for the x-momentum equation.}
+    \label{x-momentum equation}
+\end{figure}
+對於計算點$(i+\frac{1}{2},j)$而言，SIMPLE算法中心差分格式中包含：
+
+\noindent (1)對流項的近似：對流項的微分形式的二階精度中心差分
+\begin{equation}\begin{split}
+    &(\left.\vec{\nabla }\cdot (\rho \vec{V}\otimes u)\right|_{x = i+\frac{1}{2} , y = j , t = t_0})_{x} = \left.\frac{\partial \rho u^2}{\partial x}  + \frac{\partial \rho u v}{\partial y}\right|_{x = i+\frac{1}{2}, y = j , ,t =t_0}  \\[1.5ex]
+    &\approx \frac{(\rho u^2)_{i+\frac{3}{2},j}^{n} - (\rho u^2)_{i-\frac{1}{2},j}^{n}}{2\Delta x} + \frac{(\rho uv )_{i+\frac{1}{2},j+1}^{n} - (\rho u v)_{i+\frac{1}{2},j-1}^{n}}{2\Delta y}
+\end{split}\end{equation}
+\noindent 其中，$v_{i+\frac{1}{2},j+1},v_{i+\frac{1}{2},j-1}$因為並非該變數$v$的儲存計算點，因此沒有定義，取如下差值計算：\\
+\begin{equation}\begin{split}
+  v_{N}^{n} =  v_{i+\frac{1}{2},j+1}^{n} = \frac{1}{2}(v_{i,j+\frac{1}{2}}^{n}+v_{i+1,j+\frac{1}{2}}^{n})\\[1.5ex]
+  v_{S}^{n} = v_{i+\frac{1}{2},j-1}^{n} = \frac{1}{2}(v_{i,j-\frac{1}{2}}^{n}+v_{i+1,j-\frac{1}{2}}^{n})\\[1.5ex]
+\end{split}\end{equation}
+\noindent 因此對流項可以近似為：
+\begin{equation}\begin{split}
+    \frac{(\rho u u)_{i+\frac{1}{2}+1,j}^{n} + (\rho u u)_{i+\frac{1}{2}-1,j}^{n}}{2\Delta x} + \frac{(\rho v)_{i+\frac{1}{2},j+1}^{n}v_{N}^{n} - (\rho u )_{i+\frac{1}{2},j-1}^{n}v_{S}^{n}}{2\Delta y}
+\end{split}\end{equation}
+\noindent (2)壓力梯度項的近似：壓力梯度項的微分形式的二階精度中心差分
+
+由於壓力場$p(\vec{r})$作為一個純量場，儲存的計算點為$(i+n,j+n)$，因此取以$\frac{\Delta x}{2}$為差分距離的二階精度中心差分：
+\noindent 
+(Q(D(E(Ax方向二維動量方程式)的(壓力梯度項))的(微分形式))的(二階精度中心差分))
+\begin{equation}\begin{split}
+    \left.\frac{\partial p}{\partial x}\right|_{x = i+\frac{1}{2} , y = j,t = t_0} \approx \frac{p_{i+1,j}^{n} - p_{i.,j}^{n}}{\Delta x}
+\end{split}\end{equation}
+\noindent (3)黏性應力散度項的近似：黏性應力散度項的微分形式的二階精度中心差分
+
+此處需注意偏微分導數的微分變數，若為x變數二階偏導數取近似，則取x方向相鄰計算點上的速度場作為差分近似；若為y變數二階偏導數取近似，則對計算點$(i+\frac{1}{2},j)$取y方向相鄰計算點上的速度場作為差分近似：
+
+(I(E(D(Ax方向二維動量方程)的(黏性應力散度項))的(微分形式))的(二階精度中心差分))
+\begin{equation}\begin{split}
+    &\left.\mu\left(\vec{\nabla}\cdot \vec{\nabla}\vec{V}\right)\right|_{x = i+\frac{1}{2},y=j , t = t_0} = \mu\left.\left(\frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2}\right)\right|_{x = i + \frac{1}{2},y = j , t = t_0} \approx \\[1.5ex]
+    &\mu\left(\frac{u_{i+\frac{3}{2},j}^{n}-2u_{i+\frac{1}{2},j}^{n}+u_{i-\frac{1}{2},j}^{n}}{\Delta x^{2}} + \frac{u_{i+\frac{1}{2},j+1}^{n}-2u_{i+\frac{1}{2},j}^{n}+u_{i+\frac{1}{2},j-1}^{n}}{\Delta y^{2}}\right)
+\end{split}\end{equation}
+\noindent  (4)時間導數項的近似：時間導數項的微分形式的一階精度前向差分
+時間倒數項的微分形式作爲t變數一階偏導數，(W(D(E(Ax方向二維動量方程)的(時間倒數項))的(微分形式))的(一階精度前項差分))作爲(C(Rt變數一階偏導數)的(一階精度前項差分)))\\[1.5ex]
+\begin{equation}\begin{split}
+    \left.\frac{\partial u}{\partial t}\right|_{x = i+\frac{1}{2},y = j , t = t_0} \approx \frac{u_{i+\frac{1}{2},j}^{n+1} - u_{i+\frac{1}{2},j}^{n}}{\Delta t}
+\end{split}\end{equation}
+\noindent (5)x方向二維動量方程式的微分形式的差分近似：\\
+時間一階精度空間二階精度simple算法中心差分格式為：\\
+\noindent 綜上四點所述，可以整合為：\\
+\begin{equation}\begin{split}
+    \frac{\partial \rho u}{\partial t} + (\frac{\partial \rho u u}{\partial x} + \frac{\partial \rho uv}{\partial y}) = \mu(\frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2}) -\frac{\partial p}{\partial x} \cdots x-momentum\ equation\\[1.5ex]
+\end{split}\end{equation}
+\noindent 近似取為：\\
+\begin{equation}\begin{split}
+      \frac{u_{i+\frac{1}{2},j}^{n+1} - u_{i+\frac{1}{2},j}^{n}}{\Delta t} =& - \frac{p_{i+1,j}^{n} - p_{i.,j}^{n}}{\Delta x} \\[1.5ex]
+      +&(-\left(\frac{(\rho u u)_{i+\frac{1}{2}+1,j}^{n} + (\rho u u)_{i+\frac{1}{2}-1,j}^{n}}{2\Delta x} + \frac{(\rho v)_{i+\frac{1}{2},j+1}^{n}v_{N}^{n} - (\rho u )_{i+\frac{1}{2},j-1}^{n}v_{S}^{n}}{2\Delta y}\right)\\[1.5ex]
+      +&\mu\left(\frac{u_{i+\frac{3}{2},j}^{n}-2u_{i+\frac{1}{2},j}^{n}+u_{i-\frac{1}{2},j}^{n}}{\Delta x^{2}} + \frac{u_{i+\frac{1}{2},j+1}^{n}-2u_{i+\frac{1}{2},j}^{n}+u_{i+\frac{1}{2},j-1}^{n}}{\Delta y^{2}}\right))\\[1.5ex]
+\end{split}\end{equation}
+\noindent 因此，(F(G(E(R不可壓縮牛頓流體)的(x方向二維動量方程式))的(微分形式))的(空間二階精度SIMPLE算法中心差分格式))取為：\\
+\begin{equation}\begin{split}
+    (\rho u)_{i+\frac{1}{2}}^{n+1} =& (\rho u)_{i+\frac{1}{2}}^{n} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n} - p_{i,j}^{n}) + \Delta t \cdot A
+\end{split}\end{equation}
+\noindent 其中，$A$爲x方向動方程式的對流項的微分形式的差分近似與x方向動量方程式的黏性應力散度項的微分形式的差分近似之和：\\
+\begin{equation}\begin{split}
+    A = (-\left(\frac{(\rho u u)_{i+\frac{1}{2}+1,j}^{n} + (\rho u u)_{i+\frac{1}{2}-1,j}^{n}}{2\Delta x} + \frac{(\rho v)_{i+\frac{1}{2},j+1}^{n}v_{N}^{n} - (\rho u )_{i+\frac{1}{2},j-1}^{n}v_{S}^{n}}{2\Delta y}\right)\\[1.5ex]
+      +\mu\left(\frac{u_{i+\frac{3}{2},j}^{n}-2u_{i+\frac{1}{2},j}^{n}+u_{i-\frac{1}{2},j}^{n}}{\Delta x^{2}} + \frac{u_{i+\frac{1}{2},j+1}^{n}-2u_{i+\frac{1}{2},j}^{n}+u_{i+\frac{1}{2},j-1}^{n}}{\Delta y^{2}}\right))\\[1.5ex]
+\end{split}\end{equation}
+\subsection{y方向動量方程式-SIMPLE算法中心差分格式}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.3\textwidth]{3.png} %
+    \caption{\footnotesize Computational module for the y-momentum equation.}
+    \label{y-momentum equation}
+\end{figure}
+y方向速度場$v$儲存於計算點$(i,j+\frac{1}{2})$，因此對於計算點$(i,j+\frac{1}{2})$(第三套網格系統)，SIMPLE算法中心差分格式包含：\\
+\noindent (1)對流項的近似：對流項的微分形式的二階精度中心差分
+\begin{equation}\begin{split}
+    &\left(\left.\vec{\nabla}\cdot(\rho\vec{V}\otimes \vec{V})\right|_{x = i , y = j + \frac{1}{2} , t = t_0}\right)_{y} = 
+    \left.\frac{\partial \rho uv}{\partial x} + \frac{\partial \rho vv}{\partial y}\right|_{x = i,y = j+\frac{1}{2} , t = t_0}\\[1.5ex]
+    \approx&\frac{(\rho u v)_{i+1,j+\frac{1}{2}}^{n} - (\rho u v)_{i-1,j+\frac{1}{2}}^{n}}{2\Delta x } + \frac{(\rho v v)_{i,j+\frac{3}{2}}^{n} - (\rho v v)_{i,j-\frac{1}{2}}^{n}}{2\Delta y} \\[1.5ex]
+\end{split}\end{equation}
+\noindent 說明：由於SIMPLE算法中，引入三套網格，分別為以點$P(i,j)$(計算點p本點)為計算點的有限單元，以點$e(i+\frac{1}{2},j)$(計算點p的東邊界中心點)為計算點的有限單元，以點$n(i,j+\frac{1}{2})$(計算點p的北邊界中心點)為計算點的有限單元，對於u變數而言，只儲存於第二套有限單元的計算點$(i+\frac{1}{2}+n , j+n)$上，所以
+u速度場的取值：$u_{i+1,j+\frac{1}{2}},u_{i-1,j+\frac{1}{2}}$需要取如下線性插值：\\
+
+\begin{equation}\begin{split}
+    &u_{E}^{n} = u_{i+1,j+\frac{1}{2}}^{n} = \frac{1}{2}(u_{i+\frac{1}{2},j}^{n} + u_{i+\frac{1}{2},j+1}^{n})\\[1.5ex]
+    &u_{W}^{n} = u_{i-1,j+\frac{1}{2}}^{n} = \frac{1}{2}(u_{i-\frac{1}{2},j}^{n} + u_{i-\frac{1}{2},j+1}^{n})
+\end{split}\end{equation}
+\noindent 因此，對流項可以取為：\\
+\begin{equation}\begin{split}
+    \frac{(\rho v)_{i+1,j+\frac{1}{2}}^{n}u_{E}^{n} - (\rho v)_{i-1,j+\frac{1}{2}}^{n}u_{W}^{n}}{2\Delta x} + \frac{(\rho vv)_{i,j+\frac{3}{2}}^{n} - (\rho vv)_{i,j-\frac{1}{2}}^{n}}{2\Delta y}
+\end{split}\end{equation}
+\noindent (2)壓力梯度項的近似：壓力梯度項的微分形式的二階精度中心差分
+
+由於壓力場$p(\vec{r})$作為一個純量場，儲存在以點為$(i+n,j+n)$為計算點的有限單元的中心點，因此對此y變數一階偏導數取以$\frac{\Delta y}{2}$為差分距離的二階精度中心差分：
+\noindent 
+(Q(D(E(By方向二維動量方程式)的(壓力梯度項))的(微分形式))的(二階精度中心差分))\\[1.5ex]
+\begin{equation}\begin{split}
+    \left.\frac{\partial p}{\partial y}\right|_{x = i , y = j+\frac{1}{2} , t=  t_0} \approx \frac{p_{i,j+1}^{n} - p_{i,j}^{n}}{\Delta y}
+\end{split}\end{equation}
+\noindent (3)黏性應力散度項的近似:黏性應力散度項的微分形式的二階精度中心差分
+
+(Z(G(E(By方向動量方程)的(黏性應力散度項))的(微分形式))的(二階精度中心差分))取為(R(Sy變數二階偏導數)的(二階精度中心差分))：
+\begin{equation}\begin{split}
+    &\mu\left(\left.\vec{\nabla}\cdot(\vec{\nabla} \vec{V})\right|_{x = i,y = j+\frac{1}{2} , t = t_0}\right)_{y}
+    =\mu \left.(\frac{\partial^{2} v}{\partial x^{2}} + \frac{\partial^{2} v}{\partial y^{2}})\right|_{x = i,y = j+\frac{1}{2} , t=t_0}\\[1.5ex]
+    =&\frac{v_{i+1,j+\frac{1}{2}}^{n} -2v_{i,j+\frac{1}{2}}^{n} + v_{i-1,j+\frac{1}{2}}^{n}}{2\Delta x} + \frac{v_{i,j+\frac{3}{2}}^{n} - 2v_{i,j+\frac{1}{2}}^{n} + v_{i,j-\frac{1}{2}}^{n}}{2\Delta y}
+\end{split}\end{equation}
+\noindent  (4)時間導數項的近似：取時間導數項的微分形式的一階精度前向差分
+
+時間倒數項的微分形式作爲t變數一階偏導數，(W(D(E(Ay方向二維動量方程)的(時間倒數項))的(微分形式))的(一階精度前項差分))作爲(C(Rt變數一階偏導數)的(一階精度前項差分))\\[1.5ex]
+\begin{equation}\begin{split}
+    \left.\frac{\partial v}{\partial t}\right|_{x=i,y= j+\frac{1}{2},t = t_0} = \frac{v_{i,j+\frac{1}{2}}^{n+1} - v_{i,j+\frac{1}{2}}^{n}}{\Delta t}
+\end{split}\end{equation}
+\noindent (5)y方向二維動量方程式的微分形式的差分近似：\\
+時間一階精度空間二階精度simple算法中心差分格式為：\\
+\noindent 綜上四點所述，可以整合為：
+\begin{equation}\begin{split}
+    \frac{\partial \rho v}{\partial t} + \frac{\partial \rho u v}{\partial x} + \frac{\partial \rho v^{2}}{\partial y} = \mu\left(\frac{\partial^{2} v}{\partial x^{2}} + \frac{\partial^{2} v}{\partial y^{2}}\right) - \frac{\partial p}{\partial y} \cdots y-momentum\ equation\\[1.5ex]
+\end{split}\end{equation}
+\noindent 近似取為:
+\begin{equation}\begin{split}
+    &\frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1} - (\rho v)_{i,j+\frac{1}{2}}^{n}}{\Delta t} = -\frac{p_{i,j+1}^{n} - p_{i,j}^{n}}{\Delta y} \\[1.5ex]
+    & - \left(\frac{(\rho v)_{i+1,j+\frac{1}{2}}^{n}u_{E}^{n} - (\rho v)_{i-1,j+\frac{1}{2}}^{n}u_{W}^{n}}{2\Delta x} + \frac{(\rho v v)_{i,j+\frac{3}{2}}^{n} - (\rho v v)_{i,j-\frac{1}{2}^{n}}}{2\Delta y}\right)\\[1.5ex]
+    & + \mu \left(\frac{v_{i+1,j+\frac{1}{2}}^{n}-2v_{i,j+\frac{1}{2}}^{n}+v_{i-1,j+\frac{1}{2}}^{n}}{\Delta x^{2}} + \frac{v_{i,j+\frac{3}{2}}^{n}-2v_{i,j+\frac{1}{2}}^{n}+v_{i,j-\frac{1}{2}}^{n}}{\Delta x^{2}\Delta y^{2}}\right)
+\end{split}\end{equation}
+\noindent 因此，(J(H(E(G不可壓縮牛頓流體)的(y方向二維動量方程式))的(微分形式))的(時間一階精度空間二階精度IMPLE算法中心差分格式))為：\\
+\begin{equation}\begin{split}
+    (\rho v)_{i,j+\frac{1}{2}}^{n+1} = (\rho v)_{i,j+\frac{1}{2}}^{n} - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n} - p_{i,j}^{n}) + \Delta t \cdot B
+\end{split}\end{equation}
+\noindent 其中，\\
+\begin{equation}\begin{split}
+    B =& -\left( \frac{(\rho v)_{i+1,j+\frac{1}{2}}^{n}u_{E}^{n} - (\rho v)_{i-1,j+\frac{1}{2}}^{n}u_{W}^{n}}{2\Delta x} + \frac{(\rho v v)_{i,j+\frac{3}{2}}^{n} - (\rho v v)_{i,j-\frac{1}{2}}^{n}}{2\Delta y}\right) \\[1.5ex]
+    +& \mu\left( \frac{v_{i+1,j+\frac{1}{2}}^{n}-2v_{i,j+\frac{1}{2}}^{n}+v_{i-1,j+\frac{1}{2}}^{n}}{\Delta x^{2}} + \frac{v_{i,j+\frac{3}{2}}^{n}-2v_{i,j+\frac{1}{2}}^{n}+v_{i,j-\frac{1}{2}}^{n}}{\Delta y^{2}}\right)
+\end{split}\end{equation}
+\section{壓力校正算法(SIMPLE算法)}
+\subsection{預估值與正確值}
+對於Navier-Stokes方程組(包含連續方程式(式一.2)，x方向二維動量方程式(式一.3)，y方向二維動量方程(式一.4))
+，作為三個變數$u,v,p$共同滿足的方程組，且由N-S方程組可看出，三個變數在方程組中，相互耦合，相互影響，因此，無法直接求解。\\
+作法：\\
+在SIMPLE算法中，先分別對正確的壓力場$p$、正確的x方向速度場$u$、正確的y方向速度場$v$，假設為預估取值$(*)$與修正量$(')$之和(($u,v,p$)變數如下所示)，以壓力校正$p'$為參數，利用"try and error"方式，逐步找出滿足連續方程式的預估速度場分量$u_{i+\frac{1}{2},j}^{n\ *}$、$v_{i+\frac{1}{2},j}^{n\ *}$
+\begin{equation}\begin{split}
+    &p_{i,j}^{n} = p_{i,j}^{n\ '} + p_{i,j}^{n *} \cdots \text{在}(i,j,n)\text{的pressure field校正}\\[1.5ex]
+    &u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ '} + u_{i+\frac{1}{2},j}^{n *} \cdots \text{在}(i+\frac{1}{2},j,n)\text{的x-velocity校正}\\[1.5ex]
+    &v_{i,j+\frac{1}{2}}^{n} = v_{i,j+\frac{1}{2}}^{n\ '} + v_{i,j+\frac{1}{2}}^{n *} \cdots \text{在}(i,j+\frac{1}{2},n)\text{的y-velocity校正}\\[1.5ex]
+\end{split}\end{equation}
+\noindent 其中，$p_{i,j}^{n}$與$u_{i+\frac{1}{2},j}^{n}$滿足x方向二維動量方程：\\
+\begin{equation}\begin{split}
+    (\rho u)_{i+\frac{1}{2}}^{n+1} = (\rho u)_{i+\frac{1}{2}}^{n} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n} - p_{i,j}^{n}) + \Delta t \cdot A \cdots (1)\\[1.5ex]
+\end{split}\end{equation}
+$p_{i,j}^{n}$與$v_{i,j+\frac{1}{2}}^{n}$滿足y方向二維動量方程：\\
+\begin{equation}\begin{split}
+    (\rho v)_{i,j+\frac{1}{2}}^{n+1} = (\rho v)_{i,j+\frac{1}{2}}^{n} - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n} - p_{i,j}^{n}) + \Delta t \cdot B \cdots (2)\\[1.5ex]
+\end{split}\end{equation}
+$u_{i+\frac{1}{2},j}^{n}$與$v_{i,j+\frac{1}{2}}^{n}$滿足(R(I(U(P密度場非時變流場)的(二維連續方程式))的(微分形式))的(空間二階精度中心差分格式))
+\begin{equation}\begin{split}
+D_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n} - (\rho u)_{i-\frac{1}{2},j}^{n}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n} - (\rho v)_{i,j-\frac{1}{2}}^{n}}{\Delta y} = 0 
+\end{split}\end{equation}
+\subsection{預估值所應滿足的方程式以及動量迭代}
+\noindent 如下方程組為每一次迭代，$u_{i+\frac{1}{2},j}^{n}$、$v_{i,j+\frac{1}{2}}^{n}$、$p_{i,j}^{n}$時時刻刻皆滿足的方程組：\\
+\noindent 下將以此為基底，導出壓力校正方程式：\\
+\begin{equation}
+\left\{
+\begin{aligned}
+    &D_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n} - (\rho u)_{i-\frac{1}{2},j}^{n}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n} - (\rho v)_{i,j-\frac{1}{2}}^{n}}{\Delta y} = 0 \quad \text{continuity equation}\\[1.5ex]
+    &(\rho u)_{i+\frac{1}{2},j}^{n+1} = (\rho u)_{i+\frac{1}{2},j}^{n} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n} - p_{i,j}^{n}) + \Delta t \cdot A  \quad \text{x momentum equation}\\[1.5ex]
+    &(\rho v)_{i,j+\frac{1}{2}}^{n+1} = (\rho v)_{i,j+\frac{1}{2}}^{n} - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n} - p_{i,j}^{n}) + \Delta t \cdot B \quad \text{y momentum equation}\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\noindent 將上方程組寫成校正量$(')$與預估值$(*)$的形式式，等價上，x方向動量場正確值$(\rho u)_{i+\frac{1}{2},j}^{n+1}$，y方向動量場正確值$(\rho v)_{i,j+\frac{1}{2}}^{n+1}$所應滿足的連續方程式與x方向動量場預估值$(\rho u)_{i+\frac{1}{2},j}^{n+1\ *}$，y方向動量場預估值$(\rho v)_{i,j+\frac{1}{2}}^{n+1\ *}$與壓力場校正量$(p_{i,j}^{n\ \prime})$所滿足的壓力校正方程式(The Pressure Correction Formula)$(10)^{\prime}$等效:\\
+$$" \text{The Pressure Correction Formula}_{u*,v*,p'} \leftrightarrow \text{Continuity Equation}_{u,v}"$$
+\noindent 其中，x方向動量場正確值$(\rho u)_{i+\frac{1}{2},j}^{n+1}$，y方向動量場正確值$(\rho v)_{i,j+\frac{1}{2}}^{n+1}$所應滿足的連續方程式，為：
+\begin{equation}\begin{split}
+    d_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1\ *} - (\rho u)_{i-\frac{1}{2},j}^{n+1\ *}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} - (\rho v)_{i,j-\frac{1}{2}}^{n+1\ *}}{\Delta y} = 0 \quad \text{(...pre-continuity equation)}\\[1.5ex]
+\end{split}\end{equation}
+\noindent 而，x方向動量場預估值$(\rho u)_{i+\frac{1}{2},j}^{n+1\ *}$，y方向動量場預估值$(\rho v)_{i,j+\frac{1}{2}}^{n+1\ *}$與壓力場校正量$(p_{i,j}^{n\ \prime})$所滿足的壓力校正方程式(The Pressure Correction Formula)，為：
+\begin{equation}\begin{split}
+    D_{i,j} =\\
+        &\quad \ \frac{((\rho u)_{i+\frac{1}{2},j}^{n+1\ *} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ \prime} - p_{i,j}^{n\ \prime})) - ((\rho u)_{i-\frac{1}{2}}^{n+1\ *} - \frac{\Delta t}{\Delta x}(p_{i,j}^{n\ \prime} - p_{i-1,j}^{n\ \prime})) }{\Delta x}\\[1.5ex]
+        &+\frac{((\rho v)_{i,j+\frac{1}{2}}^{n+1\ *}- \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n\ \prime} - p_{i,j}^{n\ \prime})) - ((\rho v)_{i,j-\frac{1}{2}}^{n+1\ *}-\frac{\Delta t}{\Delta y}((p)_{i,j}^{n\ \prime} - (p)_{i,j-1}^{n\ \prime}))}{\Delta y}\\[1.5ex]
+        &\quad \text{(...SIMPLE-continuity equation)}\\[1.5ex]
+\end{split}\end{equation}
+$$\text{三個變數所滿足的三個方程式} \xrightarrow{\text{擴展為}}\text{九個變數所滿足的九個方程式(見Appendix:\ref{sec:basic.s})}$$
+\vspace{0.6ex}
+\begin{equation}
+\centering
+\left\{
+\begin{aligned}
+    &u_{i+\frac{1}{2},j}^{n}\\[1.5ex]
+    &v_{i+\frac{1}{2},j}^{n}\\[1.5ex]
+    &p_{i,j}^{n}\\[1.5ex]
+\end{aligned}
+\right.
+\quad\xrightarrow{\text{擴展為}}\quad
+\left\{
+\begin{bmatrix}
+    u_{i+\frac{1}{2},j}^{n} & u_{i+\frac{1}{2},j}^{n\ \prime} & u_{i+\frac{1}{2},j}^{n\ *} \\[1.5ex]
+    v_{i,j+\frac{1}{2}}^{n} & v_{i,j+\frac{1}{2}}^{n\ \prime} & v_{i,j+\frac{1}{2}}^{n\ *} \\[1.5ex]
+    p_{i,j}^{n} & p_{i,j}^{n\ \prime} & p_{i,j}^{n\ *}
+  \end{bmatrix}
+\right.
+\label{eq:variables}
+\end{equation}
+\noindent 將原本的非線性Navier-Stokes方程組透過有線差分法(本次對連續方程式取「空間二階精度中心差分」，以及對x、y方向二維動量方程式取「時間一階精度空間二階精度SIMPLE算法中心差分格式」)離散化後，得到的離散化方程組為線性代數方程組，由九個代數方程式所組成，如Appendix:\ref{sec:basic.s}所示，再經由SIMPLE算法中，最重要的核心關鍵：
+\begin{equation}\begin{split}
+    &(\rho u)_{i+\frac{1}{2},j}^{n+1\ \prime} = (\rho u)_{i+\frac{1}{2},j}^{n\ \prime} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ \prime} - p_{i,j}^{n\ \prime}) + \Delta t \cdot A^{\prime}  \quad \text{(...x mod-momentum eq.)}\\[1.5ex]
+    &\xrightarrow{\text{取代為}} (\rho u)_{i+\frac{1}{2},j}^{n+1\ \prime} = - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ \prime} - p_{i,j}^{n\ \prime})  \quad \text{(...SIMPLE-mod-x momentum eq.)}\\[1.5ex]
+\end{split}\end{equation}
+\noindent 得出在迭代計算過程中，9個變數\eqref{eq:variables}所應滿足的方程組：\ref{subs:Final.s}，其中，連續方程式即為壓力校正方程式(The Pressure Correction Formula)\eqref{eq:Final.1}。
+\subsection{壓力修正方程(The Pressure Correction Formula)的導出}
+\subsubsection{計算步之標記與時間步長之標記}
+
+在這裡，必須先定義符號，對於壓力場修正值$p_{i,j}^{N\ n\ \prime}$有如下區別與定義：\\
+\[
+\begin{array}{l}
+    p_{i,j}^{N+1\ n\ \prime} : \text{計算第(N+1)步時間第(n)步壓力場修正值}\\[1.5ex]
+    (p_{i-1,j}^{N\ n\ \prime},p_{i+1,j}^{N\ n\ \prime},p_{i,j-1}^{N\ n\ \prime},p_{i,j+1}^{N\ n\ \prime}):\text{計算第(N)步時間第(n)步壓力場修正值}\\[1.5ex]
+\end{array}
+\]
+
+壓力場修正值的迭代與其他變量的迭代不同，壓力場修正值的迭代與時間演進無關，其他變量的迭代則遵照時間演進更新，因此，在計算九個變量時，壓力場修正值在每一個時序中，獨自進行一次計算步，而其他變量則照著SIMPLE算法做時序上的更新。\\
+\begin{table}[H]
+\centering
+\caption{變量迭代}
+\renewcommand{\arraystretch}{2.0}
+\begin{tabular}{|>{\centering\arraybackslash}m{3cm}|>{\centering\arraybackslash}m{5cm}|>{\centering\arraybackslash}m{5cm}|}
+\hline
+\textbf{變量類型} & \textbf{壓力修正值}$p_{i,j}^{N+1\ n\ \prime}$ & \textbf{其他變量} \\
+\hline
+演進標示 & 計算步長更新$N \rightarrow N+1$ & 時間步長更新$n \rightarrow n+1$\\
+\hline
+迭代規則 &壓力場修正值Poisson方程-逐次鬆弛迭代技術 & 離散化動量方程式與預估值-修正值-正確值的關係 \\
+\hline
+\end{tabular}
+\renewcommand{\arraystretch}{1.0}
+\end{table}
+\noindent 其中，$N$代表計算步，$n$代表離散的時間步。因此，壓力場修正值與其他變量為各自獨立演進。
+因此，在進行壓力場修正值$p_{i,j}^{N+1\ n\ \prime}$的迭代時，也就是求解壓力場Poisson方程時，為在同一個時間步完成的因此，對於壓力場修正方程(The pressure correction equation)中的每一個壓力場修正值皆取上標$n$ (\ \ref{eq:n}\ )
+\subsubsection{壓力修正方程(The Pressure Correction Formula)}
+\noindent 連續方程式：(注意計算步標記與時間步標記)\\[1.5ex]
+\noindent 時間第(n+1)步x方向動量正確值$(\rho u)_{i+\frac{1}{2},j}^{n+1}$時間第(n+1)步y方向動量正確值$(\rho v)_{i,j+\frac{1}{2}}^{n+1}$所滿足的連續方程式：\\
+\noindent (E(W(A密度場非時變之流場)的(連續方程式))的(時間一階精度空間二階精度中心差分格式))在時間第(n+1)步的表達式為：
+\begin{equation}\begin{split}
+    \frac{(\rho u)_{i+1,j}^{n+1} - 2(\rho u)_{i,j}^{n+1} + (\rho u)_{i-1,j}^{n+1}}{2\Delta x} + \frac{(\rho v)_{i,j+1}^{n+1} - 2(\rho v)_{i,j}^{n+1} + (\rho v)_{i,j-1}^{n+1}}{2\Delta y} = 0
+\end{split}\end{equation}
+\noindent 對上式代入\eqref{subs:Final.s}中的：\\
+(I(W(Ex方向動量方程)的(時間一階精度空間二階精度SIMPLE算法中心差分格式))的(SIMPLE修正量形式))
+\begin{equation}\begin{split}
+    (\rho u)_{i+\frac{1}{2},j}^{n+1\ \prime} = - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{N\ n\ \prime} - p_{i,j}^{N+1\ n\ \prime})  \quad \text{(...SIMPLE-mod-x momentum eq.)}\\[1.5ex]
+\end{split}\end{equation}
+\noindent 以及(I'(W'(Py方向動量方程)的(時間一階精度空間二階精度SIMPLE算法中心差分格式))的(SIMPLE修正量形式))
+\begin{equation}\begin{split}
+(\rho v)_{i,j+\frac{1}{2}}^{n+1\ \prime} =  - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{N\ n\ \prime} - p_{i,j}^{N+1\ n\ \prime}) \quad \text{(...SIMPLE-mod-y momentum eq.)}\\[1.5ex]
+\end{split}\end{equation}
+則得到壓力修正方程(The Pressure Correction Formula)：本質上為連續方程式在時間第(n+1)步：
+\begin{equation}\label{eq:n}\begin{split}
+    D_{i,j} =\\[1.5ex]
+        &\quad \ \frac{((\rho u)_{i+\frac{1}{2},j}^{n+1\ *} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{N\ n\ \prime} - p_{i,j}^{N+1\ n\ \prime})) - ((\rho u)_{i-\frac{1}{2}}^{n+1\ *} - \frac{\Delta t}{\Delta x}(p_{i,j}^{N+1\ n\ \prime} - p_{i-1,j}^{N\ n\ \prime})) }{\Delta x}\\[1.5ex]
+        &+\frac{((\rho v)_{i,j+\frac{1}{2}}^{n+1\ *}- \frac{\Delta t}{\Delta y}(p_{i,j+1}^{N\ n\ \prime} - p_{i,j}^{N+1\ n\ \prime})) - ((\rho v)_{i,j-\frac{1}{2}}^{n+1\ *}-\frac{\Delta t}{\Delta y}((p)_{i,j}^{N+1\ n\ \prime} - (p)_{i,j-1}^{N\ n\ \prime}))}{\Delta y}\\[1.5ex]
+        &\quad \text{(...SIMPLE-continuity equation)}\\[1.5ex]
+\end{split}\end{equation}
+\noindent 上式即為\eqref{subs:Final.s}中的第(7)式。\\
+壓力修正方程又可以如下簡化：
+\begin{equation}\begin{split}
+    ap_{i,j}^{N+1\ n\ \prime} + bp_{i-1,j}^{N\ n\ \prime} + bp_{i+1,j}^{N\ n\ \prime} + cp_{i,j-1}^{N\ n\ \prime} + cp_{i,j+1}^{N\ n\ \prime} + d_{i,j} = 0 \\[1.5ex]
+\end{split}\end{equation}
+\noindent 其中，\\
+\begin{equation}\begin{split}
+    &a = 2\left[(\frac{\Delta t}{(\Delta x)^{2}})+(\frac{\Delta t}{(\Delta y)^{2}})\right]\\
+    &b = -\frac{\Delta t}{(\Delta x)^{2}}\\
+    &c = -\frac{\Delta t}{(\Delta y)^{2}}\\
+    &d_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1\ *} - (\rho u)_{i-\frac{1}{2},j}^{n+1\ *}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} - (\rho v)_{i,j-\frac{1}{2}}^{n+1\ *}}{\Delta y} = 0 \quad \text{(...pre-continuity eq.)}\\[1.5ex]
+\end{split}\end{equation}
+\subsection{壓力場修正量Poisson方程}
+\subsubsection{Poisson方程與其中心差分格式}
+\begin{equation}\begin{split}
+\frac{\partial^{2} \psi}{\partial x^{2}} (\vec{r}) +\frac{\partial^{2} \psi}{\partial y^{2}} (\vec{r}) = f(\vec{r})
+\end{split}\end{equation}
+\noindent 其中，若上式$f(\vec{r})$為非零函數，則稱為Poisson方程。\\
+對上式取空間二階精度中心差分格式，有：
+\begin{equation}\label{eq:poisson}\begin{split}
+    \frac{\psi_{i+1,j}- 2\psi_{i,j} + \psi_{i-1,j}}{(\Delta x)^{2}} + \frac{\psi_{i,j+1} - 2\psi_{i,j} + \psi_{i,j-1}}{(\Delta y)^{2}} = f({\vec{r}})\\
+\end{split}\end{equation}
+\subsubsection{壓力場修正量Poisson方程}
+由式(\eqref{eq:n})出發，令$D_{i,j}$ = 0，且將其中的時間第(n+1)步x方向動量場預估值$(\rho u)_{i+\frac{1}{2},j}^{n\ *}$、時間第(n+1)步y方向動量場預估值$(\rho v)_{i+\frac{1}{2},j}^{n\ *}$所滿足的連續方程式：$$d_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1\ *} - (\rho u)_{i-\frac{1}{2},j}^{n+1\ *}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} - (\rho v)_{i,j-\frac{1}{2}}^{n+1\ *}}{\Delta y} = 0 \quad \text{(...pre-continuity eq.)}$$移至等號另一側
+\begin{equation}\begin{split}
+    \frac{p_{i+1,j}^{N\ n\ \ \prime}-2p_{i,j}^{N+1\ n\ \ \prime}+p_{i-1,j}^{N\ n\ \ \prime}}{(\Delta x)^{2}} + \frac{p_{i,j+1}^{N\ n\ \prime}-2p_{i,j}^{N+1\ n\ \prime}+p_{i,j-1}^{N\ n\ \prime}}{(\Delta y)^{2}} = \frac{d_{i,j}}{\Delta t}
+\end{split}\end{equation}
+\noindent 上式為壓力校正方程(The pressure correction equation)的一種變形，稱為壓力場修正值Poisson方程。
+\subsection{逐次超鬆弛迭代技術successive overrelaxation.(SOR)}
+\noindent 此節主講如何利用「逐次鬆弛迭代技術」求解「Poisson方程」：\\
+\noindent 此節出自原文書 << Computational Fluid Dynamics The Basics With Applications >> by Anderson-J-D
+第六章第五節所提及的方法\\
+我們從方程式\eqref{eq:poisson}出發，其中將$\psi_{i,j}$令為未知量，因此計算步為N+1，作為下一個計算步長迭代出的值：$\psi_{i,j}^{N+1}$，其他變數則作為已知量，各自的計算步為N，作為此次迭代的舊值：$$\psi_{i-1,j}^{N},\psi_{i+1,j}^{N},\psi_{i,j-1}^{N},\psi_{i,j+1}^{N}$$
+\noindent 因此，離散化的Poisson方程為：\\
+\begin{equation}
+    \psi_{i,j}^{N} = \frac{(\Delta x)^{2}(\Delta y)^{2}}{2((\Delta x)^{2}+(\Delta y)^{2})}\left[\frac{\psi_{i+1,j}^{N} +\psi_{i-1,j}^{N} }{(\Delta x)^{2}} + \frac{\psi_{i,j+1}^{N} + \psi_{i,j-1}^{N}}{(\Delta y)^{2}}\right]- f(\vec{r})
+\end{equation}
+其中，等式右側放的是此次迭代舊有的值，等式右側放的是此次迭代賦予的值。\\
+上式迭代原理則為Jacobi method。再從左到右，從下至上迭代得過程中，每一次迭代用的值都是上一次迭代舊有的值或者是未更新的值。\\
+\begin{figure}[H]{
+     \centering
+    \includegraphics[width=0.5\textwidth]{6.png}
+    \includegraphics[width=0.4\textwidth]{7.png}
+    \caption{\footnotesize 從上至下依序迭代}
+    \label{iiteration}
+}\end{figure}
+\noindent 若在從下至上、從左至右右迭代的過程中，每一個計算點的下計算點取值$\psi_{i,j-1}$皆取為計算步第(N+1)步取值，且每一個計算點的左計算點的取值$\psi_{i-1,j}$皆取為計算步第(N+1)步取值
+\begin{equation}\begin{split}
+    \psi_{i-1,j} \rightarrow \psi_{i-1,j}^{N+1}\\[1.5ex]
+    \psi_{i,j-1} \rightarrow \psi_{i,j-1}^{N+1}\\[1.5ex]
+\end{split}\end{equation}
+\noindent 該計算點的迭代方程則有：
+\begin{equation}\label{eq:GS}\begin{split}
+    \psi_{i,j}^{N+1} = \frac{(\Delta x)^{2}(\Delta y)^{2}}{2((\Delta x)^{2} + (\Delta y)^{2})}\left[\frac{\psi_{i+1,j}^{N} - \psi_{i-1,j}^{N+1}}{(\Delta x)^{2}} + \frac{\psi_{i,j+1}^{N} - \psi_{i,j-1}^{N+1}}{(\Delta y)^{2}}\right]  - f(\vec{r})\\
+\end{split}\end{equation}
+\noindent 則，以上式之原理作為迭代方法者，稱為Gauss-Seidel method。當然，Gauss-Seidel method下的迭代方程不僅限於上式(專門求解離散化Poisson方程)，但其中之原理可由上述說明。\\
+\noindent 以上兩種方法皆可求解離散化Poisson方程，但收斂速度較慢，為了加速收斂速度，提出了逐次超鬆弛迭代技術successive overrelaxation.\\
+\noindent 逐次(超)鬆弛迭代技術：\\
+\noindent 基本思想：將\eqref{eq:GS}式中，迭代出的計步步第(N+1)步取值$\psi_{i,j}^{N+1}$，令為一個在迭代過程中的過渡值，以符號$\ \bar{\psi}_{i,j}^{N+1}\ $做表示。\\
+\begin{equation}\label{eq:bGS}\begin{split}
+        \bar{\psi}_{i,j}^{N+1} = \frac{(\Delta x)^{2}(\Delta y)^{2}}{2((\Delta x)^{2} + (\Delta y)^{2})}\left[\frac{\psi_{i+1,j}^{N} - \psi_{i-1,j}^{N+1}}{(\Delta x)^{2}} + \frac{\psi_{i,j+1}^{N} - \psi_{i,j-1}^{N+1}}{(\Delta y)^{2}}\right]  - f(\vec{r})\\
+\end{split}\end{equation}
+\noindent 而真正的 $$\text{(E(p計算點)的(計算步第(N+1)步取值))}$$則加入鬆弛因子$\omega$，以下迭代式計算：
+\begin{equation}\label{eq:SOR}\begin{split}
+    \psi_{i,j}^{N+1} = \psi_{i,j}^{N} + \omega(\bar{\psi}_{i,j}^{N+1} - \psi_{i,j}^{N})
+\end{split}\end{equation}
+\noindent 其中，$\omega$稱為鬆弛因子，取值必然大於0。
+\noindent 逐次亞鬆弛迭代法的迭代方程式為，式\ref{eq:bGS}與式\ref{eq:SOR}的聯立，其中取鬆弛因子$\omega : $ $0 <\omega < 1$
+\noindent 。而，逐次超鬆弛迭代法的迭代方程式為，式\ref{eq:bGS}與式\ref{eq:SOR}的聯立，其中取鬆弛因子$\omega : $ $1 <\omega <2$ 。\\[1.5ex]
+\noindent 若數值解容易出現震盪現象，則應選用逐次亞鬆弛迭代法$(\ 0 <\omega < 1\ )$的迭代方程式。
+綜上所述，逐次亞鬆弛迭代法，與逐次超鬆弛迭代法筆者統稱為「逐次鬆弛迭代法」，其優點為有效地減少計算步數，因此可以減少計算時間。參考文獻：\cite{itteration1997}
+\newpage
+\counterwithin{figure}{section}%連結子參數與母參數
+\counterwithin{table}{section}
+\counterwithin{equation}{section}
+\section{SIMPLE算法}
+\begin{figure}[H]{
+     \centering
+    \includegraphics[width=0.9\textwidth]{5.png}
+    \caption{\footnotesize SIMPLE算法流程}
+    \label{SIMPLE algorithm}
+}\end{figure}
+
+SIMPLE算法在非穩態問題中，處理的是時間第(n)步變量$u_{i,J}^{n} , u_{i,J}^{n\ \prime} , u_{i,J}^{n\ *} , v_{I,j}^{n}, v_{I,j}^{n\ \prime}$ $v_{I,j}^{n\ *} , p_{I,J}^{n}, p_{I,J}^{n\ *}$在非穩態問題中時序的演進(變量$p_{I,J}^{N+1\ n\ \prime}$不參與直接時序演進，跟內迭代演進有關，時間演進則為內迭代的輪數)。其符號上標為該變量的時間步長標記，作為離散化時間的取值。再次聲明一次，SIMPLE迴圈與壓力修正量Poisson方程彼此獨立，每進行一次SIMPLE迴圈，就獨立進行一次計算步第(N+1)步壓力場修正量的迭代，兩者之間並不相衝突。\\    
+\noindent 以下則為SIMPLE算法的流程步驟：\\[1.5ex]
+\textbf{{\color{blue}STEP1 : 給定初始值}}\\
+\noindent 在初始時刻，給定以下變量的初始值。
+\[\begin{array}{l}
+\text{1.(w(A內點)的(時間第(0)步壓力場預估值))\quad $p_{I,J}^{0\ *}$} \\[1.2ex]
+\text{2.(s(A內點)的(時間第(0)步x方向動量場預估值))\quad $(\rho u )_{i,J}^{0\ *}$}\\[1.2ex]
+\text{3.(z(A內點)的(時間第(0)步y方向動量場預估值))\quad $(\rho v)_{I,j}^{0\ *}$}\\[1.2ex]
+\text{4.(W(A內點)的(時間第(0)步壓力場正確值))\quad $p_{I,J}^{0}$} \\[1.2ex]
+\text{5.(S(A內點)的(時間第(0)步x方向動量場正確值))\quad $(\rho u )_{I,J}^{0}$}\\[1.2ex]
+\text{6.(Z(A內點)的(時間第(0)步y方向動量場正確值))\quad $(\rho v)_{I,j}^{0}$}\\[1.2ex]
+\end{array}\]
+\noindent 
+\textbf{{\color{orange}STEP2：更新動量場預估值}}\\
+在(t時間步)中，更新出以下變量的值：
+\[\begin{array}{l}
+    \text{1.(s'(A內點)的(時間第(n+1)步x方向動量場預估值))\quad $(\rho u )_{i,J}^{n+1\ *}$}\\[1.2ex]
+    \text{2.(z'(A內點)的(時間第(n+1)步y方向動量場預估值))\quad $(\rho v)_{I,j}^{n+1\ *}$}\\[1.2ex]
+\end{array}\]
+利用方程式\begin{equation}\begin{split}(\rho u)_{i,J}^{n+1\ *} = (\rho u)_{i,J}^{n\ *} - \frac{\Delta t}{\Delta x}(p_{i+1,J}^{n\ *} - p_{i,J}^{n\ *}) + \Delta t \cdot A^{*}  \quad \text{(...pre-x momentum eq.)}\\[1.5ex]\end{split}\end{equation}求解(s(A內點)的(時間第(n+1)步x方向動量場預估值))$(\rho u)_{i,J}^{n+1\ *}$ ; \\
+利用方程式\begin{equation}\begin{split}(\rho v)_{I,j}^{n+1\ *} = (\rho v)_{I,j}^{n\ *} - \frac{\Delta t}{\Delta y}(p_{I,j+1}^{n\ *} - p_{I,j}^{n\ *}) + \Delta t \cdot B^{*}  \quad \text{(...y pre-momentum eq.)}\end{split}\end{equation}求解(z(A內點)的(時間第(n+1)步y方向動量場預估值))$(\rho v)_{I,j}^{n+1\ *}$\\[1.5ex]
+\textbf{{\color{blue}STEP3 : 計算本次時間步的壓力場修正值}}\\
+\noindent 計算(R(A內點)的(計算第N步時間第n步壓力場修正值))\quad $p_{I,J}^{N\ n\ \prime}$\\
+\[\begin{array}{l}\text{其中，N為內迭代次數，n為外迭代次數，兩者皆從0開始計次，最終收斂的壓力場修正值}\\ \text{作為時間第n步壓力場修正值}
+\end{array}\]
+求解 (Q(A內點)的(計算第(N)步時間第(n)步壓力場修正值))\quad $p_{I,J}^{N\ n\ \prime}$所滿足的壓力場修正值Poisson方程: \begin{equation}\begin{split}    \frac{p_{I+1,J}^{N\ n\ \ \prime}-2p_{I,J}^{N+1\ n\ \ \prime}+p_{I-1,J}^{N\ n\ \ \prime}}{(\Delta x)^{2}} + \frac{p_{I,J+1}^{N\ n\ \prime}-2p_{I,J}^{N+1\ n\ \prime}+p_{I,J-1}^{N\ n\ \prime}}{(\Delta y)^{2}} = -\frac{d_{I,J}}{\Delta t}\\[1.5ex] \end{split}\end{equation}利用逐次超鬆弛迭代法求解：
+\begin{equation}
+(1)
+\left\{
+\begin{aligned}
+    &\bar{\psi}_{I,J}^{N+1} = \frac{(\Delta x)^{2}(\Delta y)^{2}}{2((\Delta x)^{2} + (\Delta y)^{2})}\left[\frac{\psi_{I+1,J}^{N} - \psi_{I-1,J}^{N+1}}{(\Delta x)^{2}} + \frac{\psi_{I,J+1}^{N} - \psi_{I,J-1}^{N+1}}{(\Delta y)^{2}}\right]  - f(\vec{r})\\[1.5ex]
+    &\psi_{I,J}^{N+1} = \psi_{I,J}^{N} + \omega(\bar{\psi}_{I,J}^{N+1} - \psi_{I,J}^{N})
+\end{aligned}
+\right.
+\end{equation}
+其中，$-d_{i,j}/\Delta t$ 為上式Poisson方程之非齊性項，在逐次超鬆弛迭代法的迭代方程中可取代$f(\vec{r})$\\[1.5ex]
+\textbf{{\color{red}STEP4：壓力場正確值更新}}\\
+在(t時間步)中，更新出以下變量的值：
+\[\begin{array}{l}
+    \text{1.(W'(A內點)的(時間第(n+1)步壓力場正確值))\quad $p_{I,J}^{n+1}$}\\[1.2ex]
+\end{array}\]
+透過以下方程式，求解(W(A內點)的(時間第(n+1)步壓力場正確值))$\ p_{I,J}^{n+1}$\begin{equation}\begin{split}p_{I,J}^{n+1} = p_{I,J}^{N+1\ n\ \prime} + p_{I,J}^{n\ *} \quad\left[\text{...pressure field 校正}\right]\\\end{split}\end{equation}
+上式即實現了(W(A內點)的(時間第(n)步壓力場正確值))在時間步上的演進。\\[1.5ex]
+\textbf{{\color{red}STEP5 : 更新動量場正確值}}\\
+在(t時間步)中，更新出以下變量的值：
+\[\begin{array}{l}
+    \text{1.(S'(A內點)的(時間第(n+1)步x方向動量場正確值))\quad $(\rho u )_{i,J}^{n+1}$}\\[1.2ex]
+    \text{2.(Z'(A內點)的(時間第(n+1)步y方向動量場正確值))\quad $(\rho v)_{I,j}^{n+1}$}\\[1.2ex]
+\end{array}\]
+透過以下方程式，求解(S'(A內點)的(時間第(n+1)步x方向動量場正確值))\quad $(\rho u )_{i,J}^{n+1}$
+\begin{equation}\begin{split}
+    (\rho u)_{i,J}^{n+1\ } = (\rho u)_{i,J}^{n+1\ *} - \frac{\Delta t}{\Delta x}(p_{i+1,J}^{n\ \prime} - p_{i,J}^{n\ \prime})  \quad \text{(...SIMPLE-mod-x momentum eq.)}\\[1.5ex]
+\end{split}\end{equation}
+\noindent 上式即實現了(S'(A內點)的(時間第(n+1)步x方向動量場正確值))在時序上的演進。\\
+\noindent 同理，透過以下方程式，求解(Z‘(A內點)的(時間第(n+1)步y方向動量場正確值))\quad $(\rho v)_{I,j}^{n+1}$
+\begin{equation}\begin{split}
+    (\rho v)_{I,j}^{n+1\ } = (\rho v)_{I,j}^{n+1\ *} - \frac{\Delta t}{\Delta y}(p_{I,j+1}^{n\ \prime} - p_{I,j}^{n\ \prime})  \quad \text{(...SIMPLE-mod-y momentum eq.)}\\[1.5ex]
+\end{split}\end{equation}
+\noindent 上式即實現了(Z'(A內點)的(時間第(n+1)步y方向動量場正確值))在時序上的演進。\\[1.5ex]
+\textbf{{\color{blue}STEP6 : 收斂判斷步}}\\
+\[\begin{array}{l} 
+\text{判斷}\\
+\text{(E(s'(A內點)的(時間第(n+1)步x方向動量場預估值))} \quad (\rho u)_{i,J}^{n+1\ *}\text{與} \\
+\text{(z'(A內點)的(時間第(n+1)步y方向動量場預估值))} \quad (\rho v)_{i,J}^{n+1\ *}\\
+\text{相應的{\color{blue}(對流項微分形式)})在時間第(n+1)步是否為0。}\\
+\end{array} \]
+
+\begin{equation}\begin{split}
+      d_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1\ *} - (\rho u)_{i-\frac{1}{2},j}^{n+1\ *}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} - (\rho v)_{i,j-\frac{1}{2}}^{n+1\ *}}{\Delta y} = 0 \quad \text{(...pre-continuity eq.)}\\[1.5ex]
+\end{split}\end{equation}
+\noindent 上式即為外迭代(時間步迭代)中，時間第(n+1)步動量場預估值是否合乎物理的收斂條件。\\[1.5ex]
+\textbf{{\color{orange}STEP7 : 壓力場預估值更新}}\\
+將\textbf{{\color{red}\ STEP4\ }}得到的(W'(A內點)的(時間第(n+1)步壓力場正確值))$\quad p_{I,J}^{n+1}$重新賦值給：(w'(A內點)的(時間第(n+1)步壓力場預估值))$\quad p_{i,j}^{n\ *}$，如下所示：
+\begin{equation}\begin{split}
+    p_{I,J}^{n+1} \xrightarrow{\text{賦值給}} \ p_{I,J}^{n+1\ *}
+\end{split}\end{equation}
+\textbf{{\color{orange}STEP8 : 動量場預估值更新}}\\
+\noindent 將\textbf{{\color{red}\ STEP5\ }}所得到的(S'(A內點)的(時間第(n+1)步x方向動量場正確值))$\ (\rho u)_{i,J}^{n+1} \ $重新賦值給：(s'(A內點)的(時間第(n+1)步x方向動量場預估值))$\ (\rho u)_{i,J}^{n+1\ *}\ $。
+\begin{equation}\begin{split}
+    &(\rho u)_{i,J}^{n+1} \xrightarrow{\text{賦值給}} (\rho u)_{i,J}^{n+1\ *}\\[1.5ex]
+\end{split}\end{equation}
+\noindent 將\textbf{{\color{red}\ STEP5\ }}所得到的(Z'(A內點)的(時間第(n+1)步y方向動量場正確值))$\ (\rho v)_{I,j}^{n+1} \ $重新賦值給：(z'(A內點)的(時間第(n+1)步y方向動量場預估值))$\ (\rho v)_{I,j}^{n+1\ *}\ $。
+\begin{equation}\begin{split}
+    &(\rho v)_{I,j}^{n+1} \xrightarrow{\text{賦值給}} (\rho v)_{I,j}^{n+1\ *}\\[1.5ex]
+\end{split}\end{equation}
+\noindent 上兩式即為\textbf{{\ \color{blue}STEP(6)\ }}判斷式不滿足下進行之步驟，至此就完成了一次SIMPLE迴圈以及壓力場修正值Poisson方程之迭代。\\[1.5ex]
+\section{邊界處理}
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{2.0}
+\begin{tabular}{|>{\centering\arraybackslash}m{3cm}|>{\centering\arraybackslash}m{5cm}|>{\centering\arraybackslash}m{5cm}|}
+\hline
+\textbf{} & \textbf{有限差分法} & \textbf{有限體積法} \\
+\hline
+全場節點佈局 & Wet-node boundary & Link-Wise boundary \\
+\hline
+\textbf{Lid Driven Cavity} & \textbf{壓力場} & \textbf{速度場} $\vec{V}(u\ ,\ v)$ \\
+\hline
+邊界條件形式 &Neumann B.C & Dirichlet B.C \\
+\hline
+左邊界(x = 1) & $\left.\frac{\partial p}{\partial x}\right|_{x = 1} = 0$ & (u = 0 , v = 0)  \\
+\hline
+右邊界(x = Nx) & $\left.\frac{\partial p}{\partial x}\right|_{x = Nx} = 0$ & (u = 0 , v = 0) \\
+\hline
+下邊界(y = 1) & $\left.\frac{\partial p}{\partial y}\right|_{y = 1} = 0$ & (u = 0 , v = 0)  \\
+\hline
+上邊界(y = Ny) & $\left.\frac{\partial p}{\partial y}\right|_{y = Ny} = 0$ & (u = 1 , v = 0)  \\
+\hline
+\end{tabular}
+\caption{\footnotesize 邊界條件整理表}
+\renewcommand{\arraystretch}{2.0}
+\end{table}
+\begin{figure}[H]{
+    \centering
+    \includegraphics[width=0.8\textwidth]{8.png}
+    \caption{\footnotesize Wet-node ,  Link-Wise boundary}
+    \label{fig:node}
+}\end{figure}
+\begin{figure}[H]{
+    \centering
+    \includegraphics[width=0.5\textwidth]{9.png}
+    \caption{\footnotesize Lid Driven Cavity}
+    \label{fig:boundary condition}
+}\end{figure}
+\subsection{簡介}
+\noindent 註：此處嚴格定義主計算點$(i,j)$、第二套網格之計算點$(i_{1}+\frac{1}{2},j)$、第三套網格之計算點$(i,j+\frac{1}{2})$
+\subsubsection{交錯網格}
+如圖\ref{fig:boundary condition}，其中
+\[
+\left\{
+\begin{array}{l}
+    \text{黑色節點為時間第(n)步壓力場(正確值$p_{i,j}^{n}$、預估值$p_{i,j}^{n\ *}$)的儲存點}\\[1.5ex]
+    \text{以及計算第(N)步時間第(n)步壓力場修正值$p_{i,j}^{N+1\ n\ \prime}$的儲存點}\\[1.5ex]
+\end{array}
+\right.
+\]
+\[
+\left\{
+\begin{array}{l}
+    \text{白色節點為時間第(n)步x方向動量場(正確值$(\rho u)_{i_{1}+\frac{1}{2},j}^{n}$、預估值$(\rho u)_{i_{1}+\frac{1}{2},j}^{n\ *}$)的儲存點}\\[1.5ex]
+    \text{以及為時間第(n)步x方向動量場修正值$(\rho u)_{i_{1}+\frac{1}{2},j}^{n\ \prime}$的儲存點}
+\end{array}
+\right.
+\]
+\[
+\left\{
+\begin{array}{l}
+    \text{白色節點為時間第(n)步y方向動量場(正確值$(\rho v)_{i,j_{1}+\frac{1}{2}}^{n}$、預估值$(\rho v)_{i,j_{1}+\frac{1}{2}}^{n\ *}$)的儲存點}\\[1.5ex]
+    \text{以及為時間第(n)步y方向動量場修正值$(\rho v)_{i,j_{1}+\frac{1}{2}}^{n\ \prime}$的儲存點}
+\end{array}
+\right.
+\]
+\noindent 由上述可知，黑色節點為主計算點(壓力場適用)，白色節點為副網格點(x方向動量場適用，y方向動量場適用)。
+
+\subsubsection{符號定義：}
+在有限差分法中，主要採用Wet-node boundary，因此主邊界計算點與物理邊界(physical boundary)重合，配合第二套網格(x方向動量場的計算點)與第三套網格(y方向動量場的計算點)，有如下符號定義：
+
+\begin{equation*}\left\{\begin{split}
+    &I = [1,Nx]\ ,\ i \in I \\[1.5ex]
+    &I_{1} = [1,Nx-1]\ ,\ i_{1} \in I_{1} \\[1.5ex]
+    &J = [1,Ny]\ ,\ j \in J \\[1.5ex]
+    &J_{1} = [1,Ny-1]\ ,\ j_{1} \in J_{1} \\[1.5ex]
+    \end{split}\right.\end{equation*}
+    \begin{equation*}\left\{\begin{split}
+    &I^{\prime} = [2,Nx-1]\ ,\ i^{\prime} \in I^{\prime} \\[1.5ex]
+    &I_{1}^{\prime} = [2,Nx-2]\ ,\ i_{1}^{\prime} \in I_{1}^{\prime} \\[1.5ex]
+    &J^{\prime} = [2,Ny-1]\ ,\ j^{\prime} \in J^{\prime} \\[1.5ex]
+    &J_{1}^{\prime} = [2,Ny-2]\ ,\ j_{1}^{\prime} \in J_{1}^{\prime} \\[1.5ex]
+\end{split}\right.\end{equation*}
+\subsubsection{定義域}
+\[
+\left\{
+\begin{array}{l}
+    \text{主計算點}\\[1.5ex]
+    \text{(1)時間第(n)步壓力場（正確值$p_{i,j}^{n}$、預估值$p_{i,j}^{n\ *}$、修正值$p_{i,j}^{N\ n\ \prime}$）：}\\[1.5ex]
+    x = i \in [1\ ,\ Nx] \; ; \; y = j \in [1\ ,\ Ny]\\[1.5ex]
+\end{array}
+\right.
+\]
+\[
+\left\{
+\begin{array}{l}
+    \text{第二套網格之計算點}\\[1.5ex]
+    \text{(2)時間第(n)步x方向動量場(正確值$(\rho u)_{i+\frac{1}{2},j}^{n}$、預估值$(\rho u)_{i+\frac{1}{2},j}^{n\ *}$、修正值$(\rho u)_{i+\frac{1}{2},j}^{n\ \prime}$) : }\\[1.5ex]
+    x = i_{1} + \frac{1}{2} \in [1+\frac{1}{2}\ ,\ (Nx-1)+\frac{1}{2}] \ ;\ y = j \in [1\ ,\ Ny]\\[1.5ex]
+\end{array}
+\right.
+\]
+\[
+\left\{
+\begin{array}{l}   
+    \text{第三套網格之計算點}\\[1.5ex]
+    \text{(3)時間第(n)步y方向動量場(正確值$(\rho v)_{i,j+\frac{1}{2}}^{n}$、預估值$(\rho v)_{i,j+\frac{1}{2}}^{n\ *}$、修正值$(\rho v)_{i,j+\frac{1}{2}}^{n\ \prime}$) : }\\[1.5ex]
+    x = i \in [1\ ,\ Nx] \ ;\ y = j_{1}+\frac{1}{2} \in [1+\frac{1}{2}\ ,\ (Ny-1)+\frac{1}{2}]\\[1.5ex]
+\end{array}
+\right.
+\]
+\noindent 事實上，因為在求解Navier-Stokes方程組的過程中，其離散後的代數方程組為式\eqref{eq:Final.1}，且SIMPLE迴圈\ref{SIMPLE algorithm}，可以見得：我們需要邊界討論的變量為：
+\[
+\begin{array}{l}
+    \text{(1)時間第(n)步x方向動量場預估值$(\rho u)_{i_{1}+\frac{1}{2},j}^{n\ *}$ }\\[1.5ex]
+    \text{(2)時間第(n)步y方向動量場預估值$(\rho v)_{i,j_{1}+\frac{1}{2}}^{n\ *}$ }\\[1.5ex]
+    \text{(3)時間第(n)步壓力場預估值$p_{i,j}^{n\ *}$ }\\[1.5ex]
+    \text{(4)計算第(N)步時間第(n)步壓力場修正值$p_{i,j}^{N\ n\ \prime}$ }\\[1.5ex]
+\end{array}
+\]
+\subsection{x方向動量場預估值邊界處理}
+\noindent (R(E時間第(n)步x方向動量場預估值)的(定義域))為：$$    x = i_{1} + \frac{1}{2} \in [1+\frac{1}{2} ,(Nx-1)+\frac{1}{2}] \ ,\ y = j \in [1\ ,Ny]$$
+\begin{figure}[H]{
+    \centering
+    \includegraphics[width=0.5\textwidth]{10.png}
+    \caption{\footnotesize $(\rho u )_{i_{1}+\frac{1}{2},j}^{n}$的定義域}
+    \label{fig:x-momentum domain}
+}\end{figure}
+\subsubsection{參與迭代的內計算點(時變場)}
+\noindent a.內計算點(範圍：$x = i_{1}^{\prime} + \frac{1}{2} \in [2+\frac{1}{2}\ ,\ (Nx-2)+\frac{1}{2}] \ ;\ y = j_{1}^{\prime} \in [2+\frac{1}{2}\ ,\ (Ny-2)+\frac{1}{2}]$)(內點：$i_{1}^{\prime}+\frac{1}{2}\ ,\ j^{\prime}$)\\[1.5ex]
+\noindent 迭代方程為：
+\begin{equation}\begin{split}
+    (\rho u)_{i_{1}^{\prime}+\frac{1}{2},j^{\prime}}^{n+1\ *} = (\rho u)_{i_{1}^{\prime}+\frac{1}{2},j^{\prime}}^{n\ *} - \frac{\Delta t}{\Delta x}(p_{i_{1}^{\prime}+1,j^{\prime}}^{n\ *} - p_{i_{1}^{\prime},j^{\prime}}^{n\ *}) + \Delta t\cdot A^{*}
+\end{split}\end{equation}
+\noindent 其中，
+\begin{equation*}\begin{split}
+    A^{*} 
+    &= -\left(\frac{(\rho u^{2} )_{i_{1}^{\prime}+\frac{1}{2}+1,j^{\prime}}^{n\ *} - (\rho u^{2})_{i_{1}^{\prime}+\frac{1}{2} - 1,j^{\prime}}^{n\ *}}{2\Delta x} + \frac{(\rho u)_{i_{1}^{\prime}+\frac{1}{2},j^{\prime}+1}^{n\ *}\cdot v_{N^{\prime}}- (\rho u)_{i_{1}^{\prime}+\frac{1}{2},j^{\prime}-1}^{n\ *}\cdot v_{S^{\prime}}}{2\Delta y}\right)\\[1.5ex]
+    &+\mu\left(\frac{(u)_{i_{1}^{\prime}+\frac{1}{2}+1,j^{\prime}}^{n\ *}-2(u)_{i_{1}^{\prime}+\frac{1}{2},j^{\prime}}^{n\ *}+(u)_{i_{1}^{\prime}+\frac{1}{2}-1,j^{\prime}}^{n\ *}}{(\Delta x)^{2}}+\frac{(u)_{i_{1}^{\prime}+\frac{1}{2},j^{\prime}+1}^{n\ *}-2(u)_{i_{1}^{\prime}+\frac{1}{2},j^{\prime}}^{n\ *}+(u)_{i_{1}^{\prime}+\frac{1}{2},j^{\prime}-1}^{n\ *}}{(\Delta y)^{2}}\right)\\[1.5ex]
+    &= -\rho \left(\frac{(u^{2})_{i_{1}^{\prime}+\frac{1}{2}+1,j^{\prime}}^{n\ *} - (u^{2})_{i_{1}^{\prime}+\frac{1}{2} - 1,j^{\prime}}^{n\ *}}{2\Delta x} + \frac{(u)_{i_{1}^{\prime}+\frac{1}{2},j^{\prime}+1}^{n\ *}\cdot v_{N^{\prime}}- (u)_{i_{1}^{\prime}+\frac{1}{2},j^{\prime}-1}^{n\ *}\cdot v_{S^{\prime}}}{2\Delta y}\right)\\[1.5ex]
+    &+\mu\left(\frac{(u)_{i_{1}^{\prime}+\frac{1}{2}+1,j^{\prime}}^{n\ *}-2(u)_{i_{1}^{\prime}+\frac{1}{2},j^{\prime}}^{n\ *}+(u)_{i_{1}^{\prime}+\frac{1}{2}-1,j^{\prime}}^{n\ *}}{(\Delta x)^{2}}+\frac{(u)_{i_{1}^{\prime}+\frac{1}{2},j^{\prime}+1}^{n\ *}-2(u)_{i_{1}^{\prime}+\frac{1}{2},j^{\prime}}^{n\ *}+(u)_{i_{1}^{\prime}+\frac{1}{2},j^{\prime}-1}^{n\ *}}{(\Delta y)^{2}}\right)\\[1.5ex]
+\end{split}\end{equation*}
+\noindent 其中，
+\begin{equation*}\begin{split}
+    &\text{內計算點：}(i_{1}^{\prime}+\frac{1}{2}\ ,\ j^{\prime})\\[1.5ex]
+    &v_{N^{\prime}} = v_{i_{1}^{\prime}+\frac{1}{2},j^{\prime}+1} = \frac{1}{2}(v_{i_{1}^{\prime}+\frac{1}{2}+\frac{1}{2},j^{\prime}+\frac{1}{2}} + v_{i_{1}^{\prime}+\frac{1}{2}-\frac{1}{2},j^{\prime}+\frac{1}{2}})\\[1.5ex]
+    &v_{S^{\prime}} = v_{i_{1}^{\prime}+\frac{1}{2},j^{\prime}-1} = \frac{1}{2}(v_{i_{1}^{\prime}+\frac{1}{2}+\frac{1}{2},j^{\prime}-\frac{1}{2}} + v_{i_{1}^{\prime}+\frac{1}{2}-\frac{1}{2},j^{\prime}-\frac{1}{2}})\\[1.5ex]
+\end{split}\end{equation*}
+\subsubsection{未參與迭代的邊界計算點(非時變場)}
+\noindent a.上邊界計算點(範圍：$x = i_{1} \in [1+\frac{1}{2},(Nx-1)+\frac{1}{2}]\ ,\ j = Ny$)(上邊界計算點：$i_{1}+\frac{1}{2}\ ,\ Ny$)\\[1.5ex]
+\noindent 該點滿足的方程為：
+\begin{equation}\begin{split}
+    (\rho u)_{i+\frac{1}{2},j}^{n\ *} = \rho \\[1.5ex]
+\end{split}\end{equation}
+\noindent b.下邊界計算點(範圍：$x = i_{1} \in [1+\frac{1}{2},(Nx-1)+\frac{1}{2}]\ ,\ j = 1$)(下邊界計算點：$i_{1}+\frac{1}{2}\ ,\ 1$)\\[1.5ex]
+\noindent 該點滿足的方程為：
+\begin{equation}\begin{split}
+    (\rho u)_{i+\frac{1}{2},j}^{n\ *} = 0\\[1.5ex]
+\end{split}\end{equation}
+\noindent 其中，$\rho$為密度場，作為空間中的均勻靜純量場。
+\subsubsection{參與迭代的邊界計算點}
+\noindent c.左邊界計算點(範圍：$x = 1+\frac{1}{2}\ ,\  y = j^{\prime} \in [2,Ny-1]$)(左邊界計算點：$1+\frac{1}{2}\ ,\ j^{\prime}$)\\[1.5ex]
+\noindent 迭代方程為：
+\begin{equation}\begin{split}
+    (\rho u)_{1+\frac{1}{2},j^{\prime}}^{n+1\ *} = (\rho u)_{1+\frac{1}{2},j^{\prime}}^{n\ *} - \frac{\Delta t}{\Delta x}(p_{1+1,j^{\prime}}^{n\ *} - p_{1,j^{\prime}}^{n\ *}) + \Delta t\cdot A^{*}
+\end{split}\end{equation}
+\noindent 其中，
+\begin{equation*}\begin{split}
+    A^{*} 
+    &= -\left(\frac{(\rho u u )_{1+\frac{1}{2}+1,j^{\prime}}^{n\ *} - (\rho u u)_{1+\frac{1}{2} - 1,j^{\prime}}^{n\ *}}{2\Delta x} + \frac{(\rho u)_{1+\frac{1}{2},j^{\prime}+1}^{n\ *}\cdot v_{N1}- (\rho u)_{1+\frac{1}{2},j^{\prime}-1}^{n\ *}\cdot v_{S1}}{2\Delta y}\right)\\[1.5ex]
+    &+\mu\left(\frac{(u)_{1+\frac{1}{2}+1,j^{\prime}}^{n\ *}-2(u)_{1+\frac{1}{2},j^{\prime}}^{n\ *}+(u)_{1+\frac{1}{2}-1,j^{\prime}}^{n\ *}}{(\Delta x)^{2}}+\frac{(u)_{1+\frac{1}{2},j^{\prime}+1}^{n\ *}-2(u)_{1+\frac{1}{2},j^{\prime}}^{n\ *}+(u)_{1+\frac{1}{2},j^{\prime}-1}^{n\ *}}{(\Delta y)^{2}}\right)\\[1.5ex]
+    &= -\rho \left(\frac{(u^{2} )_{1+\frac{1}{2}+1,j^{\prime}}^{n\ *} -(2u_{left} - u_{1+\frac{1}{2},j^{\prime}}^{n\ *})^{2}}{2\Delta x} + \frac{(u)_{1+\frac{1}{2},j^{\prime}+1}^{n\ *}\cdot v_{N1}- (u)_{1+\frac{1}{2},j^{\prime}-1}^{n\ *}\cdot v_{S1}}{2\Delta y}\right)\\[1.5ex]
+    &+\mu\left(\frac{(u)_{1+\frac{1}{2}+1,j^{\prime}}^{n\ *}-3(u)_{1+\frac{1}{2},j^{\prime}}^{n\ *}+2u_{left}}{(\Delta x)^{2}}+\frac{(u)_{1+\frac{1}{2},j^{\prime}+1}^{n\ *}-2(u)_{1+\frac{1}{2},j^{\prime}}^{n\ *}+(u)_{1+\frac{1}{2},j^{\prime}-1}^{n\ *}}{(\Delta y)^{2}}\right)\\[1.5ex]
+\end{split}\end{equation*}
+\noindent 其中，
+\begin{equation*}\begin{split}
+    &\text{左邊界點：}(1+\frac{1}{2}\ ,\ j^{\prime})\\[1.5ex]
+    &v_{N1} = v_{1+\frac{1}{2},j^{\prime}+1} = \frac{1}{2}(v_{1+\frac{1}{2}+\frac{1}{2},j^{\prime}+\frac{1}{2}} + v_{1+\frac{1}{2}-\frac{1}{2},j^{\prime}+\frac{1}{2}})\\[1.5ex]
+    &v_{S1} = v_{1+\frac{1}{2},j^{\prime}-1} = \frac{1}{2}(v_{1+\frac{1}{2}+\frac{1}{2},j^{\prime}-\frac{1}{2}} + v_{1+\frac{1}{2}-\frac{1}{2},j^{\prime}-\frac{1}{2}})\\[1.5ex]
+\end{split}\end{equation*}
+\noindent d.右邊界計算點(範圍：$x = (Nx-1)+\frac{1}{2}\ ,\   y = j^{\prime} \in [2,Ny-1]$)(右邊界計算點：$Nx-1\ ,\ j^{\prime}$)\\[1.5ex]
+\noindent 迭代方程為：
+\begin{equation}\begin{split}
+    (\rho u)_{(Nx-1)+\frac{1}{2},j^{\prime}}^{n+1\ *} = (\rho u)_{(Nx-1)+\frac{1}{2},j^{\prime}}^{n\ *} - \frac{\Delta t}{\Delta x}(p_{(Nx-1)+1,j^{\prime}}^{n\ *} - p_{(Nx-1),j^{\prime}}^{n\ *}) + \Delta t\cdot A^{*}
+\end{split}\end{equation}
+\noindent 其中，
+\begin{equation*}\begin{split}
+    A^{*}
+    &= -\rho (\frac{(2u_{right} - u_{(Nx-1)+\frac{1}{2},j^{\prime}}^{n\ *})^{2} - (u_{(Nx-2)+\frac{1}{2},j^{\prime}}^{n\ *})^{2}}{2\Delta x} + \frac{u_{(Nx-1)+\frac{1}{2},j^{\prime}+1}^{n\ *}v_{N(Nx-1)} - u_{(Nx-1)+\frac{1}{2},j^{\prime}-1}^{n\ *}v_{S(Nx-1)}}{2\Delta y})\\[1.5ex]
+    &+ \mu  (\frac{2u_{right}-3u_{(Nx-1)+\frac{1}{2},j^{\prime}}^{n\ *}+u_{(Nx-2)+\frac{1}{2},j^{\prime}}^{n\ *}}{(\Delta x)^{2}} + \frac{u_{(Nx-1)+\frac{1}{2},j^{\prime}+1}^{n\ *}-2u_{(Nx-1)+\frac{1}{2},j^{\prime}}^{n\ *}+u_{(Nx-1)+\frac{1}{2},j^{\prime}-1}^{n\ *}}{(\Delta y)^{2}})\\[1.5ex]
+\end{split}\end{equation*}
+\noindent 其中，
+\begin{equation*}\begin{split}
+    &\text{右邊界點：}(x = (Nx-1)+\frac{1}{2}\ ,\ j^{\prime})\\[1.5ex]
+    &v_{N(Nx-1)} = v_{(Nx-1)+\frac{1}{2},j^{\prime}+1} = \frac{1}{2}(v_{(Nx-1)+\frac{1}{2}+\frac{1}{2},j^{\prime}+\frac{1}{2}} + v_{(Nx-1)+\frac{1}{2}-\frac{1}{2},j^{\prime}+\frac{1}{2}})\\[1.5ex]
+    &v_{S(Nx-1)} = v_{(Nx-1)+\frac{1}{2},j^{\prime}-1} = \frac{1}{2}(v_{(Nx-1)+\frac{1}{2}+\frac{1}{2},j^{\prime}-\frac{1}{2}} + v_{(Nx-1)+\frac{1}{2}-\frac{1}{2},j^{\prime}-\frac{1}{2}})\\[1.5ex]
+\end{split}\end{equation*}
+\subsection{y方向動量場預估值邊界處理}
+\noindent (U(E時間第(n)步y方向動量場預估值)的(定義域))為：
+\begin{equation*}
+x = i \in [1\ ,\ Nx]\ ,\ y = j_{1}+\frac{1}{2} \in [1+\frac{1}{2}\ ,\ (Ny-1)+\frac{1}{2}]
+\end{equation*}
+\begin{figure}[H]{
+    \centering
+    \includegraphics[width=0.65\textwidth]{11.png}
+    \caption{\footnotesize $(\rho v )_{i,j_{1}+\frac{1}{2}}^{n}$的定義域}
+    \label{fig:y-momentum domain}
+}\end{figure}
+\subsubsection{參與迭代的內計算點(時變場)(內點：$i^{\prime}\ ,\ j_{1}^{\prime}+\frac{1}{2}$)}
+\noindent a.內計算點(範圍：$x = i^{\prime} \in [2\ ,\ Nx-1]\ ,\ y = j_{1}^{\prime}+\frac{1}{2}\in [2+\frac{1}{2}\ ,\ (Ny-2)+\frac{1}{2}]$)\\[1.5ex]
+\noindent 迭代的方程為：
+\begin{equation}\begin{split}
+    (\rho v)_{i^{\prime},j^{\prime}+\frac{1}{2}}^{n+1\ *} = (\rho u)_{i^{\prime},j_{1}^{\prime}+\frac{1}{2}}^{n\ *} -\frac{\Delta t}{\Delta y}(p_{i^{\prime},j_{1}^{\prime}+1}^{n\ *} - p_{i^{\prime},j_{1}^{\prime}}^{n\ *}) + \Delta \cdot B^{*}
+\end{split}\end{equation}
+\noindent 其中，
+\begin{equation*}\begin{split}
+    B^{*}=
+    &-\rho(\frac{v_{i^{\prime}+1,j_{1}^{\prime}+\frac{1}{2}+1}^{n\ *} u_{E^{\prime}} - v_{i^{\prime}-1,j_{1}^{\prime}+\frac{1}{2}}^{n\ *}u_{W^{\prime}}}{2\Delta x}+\frac{(v^{2})_{i^{\prime},j_{1}^{\prime}+\frac{1}{2}+1}^{n\ *} - (v^{2})_{i^{\prime},j_{1}^{\prime}+\frac{1}{2}-1}^{n\ *}}{2\Delta y})\\[1.5ex]
+    &+\mu(\frac{v_{i^{\prime}+1,j_{1}^{\prime}+\frac{1}{2}}^{n\ *}-2v_{i^{\prime},j_{1}^{\prime}+\frac{1}{2}}^{n\ *}+v_{i^{\prime}-1,j_{1}^{\prime}+\frac{1}{2}}^{n\ *}}{(\Delta x)^{2}} + \frac{v_{i^{\prime},j_{1}^{\prime}+\frac{1}{2}+1}^{n\ *}-2v_{i^{\prime},j_{1}^{\prime}+\frac{1}{2}}^{n\ *}+v_{i^{\prime},j_{1}^{\prime}+\frac{1}{2}-1}^{n\ *}}{(\Delta y)^{2}})\\[1.5ex]
+\end{split}\end{equation*}
+\noindent 其中，
+\begin{equation*}\begin{split}
+    u_{E^{\prime}} = \frac{1}{2}(u_{i^{\prime}+\frac{1}{2},j_{1}^{\prime}+\frac{1}{2}+\frac{1}{2}}+u_{i^{\prime}+\frac{1}{2},j_{1}^{\prime}+\frac{1}{2}-\frac{1}{2}})\\[1.5ex]
+    u_{W^{\prime}} = \frac{1}{2}(u_{i^{\prime}-\frac{1}{2},j_{1}^{\prime}+\frac{1}{2}+\frac{1}{2}}+u_{i^{\prime}-\frac{1}{2},j_{1}^{\prime}+\frac{1}{2}-\frac{1}{2}})\\[1.5ex]
+\end{split}\end{equation*}
+\subsubsection{未參與迭代的邊界計算點(非時變場)}
+\noindent a.左邊界計算點(範圍：$x = 1 \ ,\ y = j_{1}+\frac{1}{2} \in [1+\frac{1}{2}\ ,\ (Ny-1)+\frac{1}{2}]$)(左邊界計算點：$1\ ,\ j_{1}+\frac{1}{2}$)\\[1.5ex]
+\noindent 該點滿足的方程為：
+\begin{equation}\begin{split}
+   (\rho v)_{1,j_{1}+\frac{1}{2}}^{n\ *} = 0\\[1.5ex]
+\end{split}\end{equation}
+\noindent b.右邊界計算點(範圍：$x = Nx \ ,\ y = j_{1}+\frac{1}{2} \in [1+\frac{1}{2}\ ,\ (Ny-1)+\frac{1}{2}]$)(左邊界計算點：$Nx\ ,\ j_{1}+\frac{1}{2}$)\\[1.5ex]
+\noindent 該點滿足的方程為：
+\begin{equation}\begin{split}
+   (\rho v)_{Nx,j_{1}+\frac{1}{2}}^{n\ *} = 0\\[1.5ex]
+\end{split}\end{equation}
+\noindent 其中，$\rho$為密度場，作為空間中的均勻靜純量場。
+\subsubsection{參與迭代的邊界計算點}
+\noindent c.下邊界計算點(範圍：$x = i^{\prime} \in [2,Nx-1]\ ,\  y = 1+\frac{1}{2}$)(下邊界計算點：$i^{\prime}\ ,\ 1+\frac{1}{2}$)\\[1.5ex]
+\noindent 迭代方程為：
+\begin{equation}\begin{split}
+    (\rho v)_{i^{\prime},1+\frac{1}{2}}^{n+1\ *} = (\rho v)_{i^{\prime},1+\frac{1}{2}}^{n\ *} - \frac{\Delta t}{\Delta y}(p_{i^{\prime},2}^{n\ *} - p_{i^{\prime},1}^{n\ *}) + \Delta t\cdot B^{*}
+\end{split}\end{equation}
+\noindent 其中，
+\begin{equation*}\begin{split}
+    B^{*} 
+    &= -\left(\frac{(\rho v)_{i^{\prime}+1,1+\frac{1}{2}}^{n\ *}\cdot u_{E1} - (\rho v)_{i^{\prime}-1,1+\frac{1}{2}}^{n\ *}\cdot u_{W1}}{2\Delta x} + \frac{(\rho v^{2})_{i^{\prime},1+\frac{1}{2}+1}^{n\ *}- (\rho v^{2})_{i^{\prime},1+\frac{1}{2}-1}^{n\ *}}{2\Delta y}\right)\\[1.5ex]
+    &+\mu\left(\frac{(v)_{i^{\prime}+1,1+\frac{1}{2}}^{n\ *}-2(v)_{i^{\prime},1+\frac{1}{2}}^{n\ *}+(u)_{i^{\prime}-1,1+\frac{1}{2}}^{n\ *}}{(\Delta x)^{2}}+\frac{(v)_{i^{\prime},1+\frac{1}{2}+1}^{n\ *}-2(v)_{i^{\prime},1+\frac{1}{2}}^{n\ *}+(v)_{i^{\prime},1+\frac{1}{2}-1}^{n\ *}}{(\Delta y)^{2}}\right)\\[1.5ex]
+    &= -\rho \left(\frac{(v)_{i^{\prime}+1,1+\frac{1}{2}}^{n\ *}\cdot u_{E1} - (v)_{i^{\prime}-1,1+\frac{1}{2}}^{n\ *}\cdot u_{W1}}{2\Delta x} + \frac{(v^{2})_{i^{\prime},1+\frac{1}{2}+1}^{n\ *}- (2v_{bottom} - v_{i^{\prime},1+\frac{1}{2}})^{2}}{2\Delta y}\right)\\[1.5ex]
+    &+\mu\left(\frac{(v)_{i^{\prime}+1,1+\frac{1}{2}}^{n\ *}-2(v)_{i^{\prime},1+\frac{1}{2}}^{n\ *}+(u)_{i^{\prime}-1,1+\frac{1}{2}}^{n\ *}}{(\Delta x)^{2}}+\frac{(v)_{i^{\prime},1+\frac{1}{2}+1}^{n\ *}-3(v)_{i^{\prime},1+\frac{1}{2}}^{n\ *}+2(v)_{bottom}^{n\ *}}{(\Delta y)^{2}}\right)\\[1.5ex]
+\end{split}\end{equation*}
+\noindent 其中，
+\begin{equation*}\begin{split}
+    &\text{下邊界點：$(i^{\prime}\ ,\ 1+\frac{1}{2})$}\\[1.5ex]
+    &u_{E1} = \frac{1}{2}(u_{i^{\prime}+\frac{1}{2},1+\frac{1}{2}+\frac{1}{2}}+u_{i^{\prime}+\frac{1}{2},1+\frac{1}{2}-\frac{1}{2}})\\[1.5ex]
+    &u_{W1} = \frac{1}{2}(u_{i^{\prime}-\frac{1}{2},1+\frac{1}{2}+\frac{1}{2}}+u_{i^{\prime}-\frac{1}{2},1+\frac{1}{2}-\frac{1}{2}})\\[1.5ex]
+\end{split}\end{equation*}
+
+\noindent d.上邊界計算點(範圍：$x = i^{\prime} \in [2,Nx-1]\ ,\  y = (Ny-1)+\frac{1}{2}$)(上邊界計算點：$i^{\prime}\ ,\ (Ny-1)+\frac{1}{2}$)\\[1.5ex]
+\noindent 迭代方程為：
+\begin{equation}\begin{split}
+    (\rho v)_{i^{\prime},(Ny-1)+\frac{1}{2}}^{n+1\ *} = (\rho v)_{i^{\prime},(Ny-1)+\frac{1}{2}}^{n\ *} - \frac{\Delta t}{\Delta y}(p_{i^{\prime},(Ny-1)+1}^{n\ *} - p_{i^{\prime},(Ny-1)}^{n\ *}) + \Delta t\cdot B^{*}
+\end{split}\end{equation}
+\noindent 其中，
+{\footnotesize
+\begin{equation*}\begin{split}
+    B^{*} 
+    &= -\left(\frac{(\rho v)_{i^{\prime}+1,(Ny-1)+\frac{1}{2}}^{n\ *}\cdot u_{E(Ny-1)} - (\rho v)_{i^{\prime}-1,(Ny-1)+\frac{1}{2}}^{n\ *}\cdot u_{W(Ny-1)}}{2\Delta x} + \frac{(\rho v^{2})_{i^{\prime},(Ny-1)+\frac{1}{2}+1}^{n\ *}- (\rho v^{2})_{i^{\prime},(Ny-1)+\frac{1}{2}-1}^{n\ *}}{2\Delta y}\right)\\[1.5ex]
+    &+\mu\left(\frac{(v)_{i^{\prime}+1,(Ny-1)+\frac{1}{2}}^{n\ *}-2(v)_{i^{\prime},(Ny-1)+\frac{1}{2}}^{n\ *}+(u)_{i^{\prime}-1,(Ny-1)+\frac{1}{2}}^{n\ *}}{(\Delta x)^{2}}+\frac{(v)_{i^{\prime},(Ny-1)+\frac{1}{2}+1}^{n\ *}-2(v)_{i^{\prime},(Ny-1)+\frac{1}{2}}^{n\ *}+(v)_{i^{\prime},(Ny-1)+\frac{1}{2}-1}^{n\ *}}{(\Delta y)^{2}}\right)\\[1.5ex]
+    &= -\rho \left(\frac{(v)_{i^{\prime}+1,(Ny-1)+\frac{1}{2}}^{n\ *}\cdot u_{E(Ny-1)} - (v)_{i^{\prime}-1,(Ny-1)+\frac{1}{2}}^{n\ *}\cdot u_{W(Ny-1)}}{2\Delta x} + \frac{(v^{2})_{i^{\prime},(Ny-1)+\frac{1}{2}+1}^{n\ *}- (2v_{bottom} - v_{i^{\prime},(Ny-1)+\frac{1}{2}})^{2}}{2\Delta y}\right)\\[1.5ex]
+    &+\mu\left(\frac{(v)_{i^{\prime}+1,(Ny-1)+\frac{1}{2}}^{n\ *}-2(v)_{i^{\prime},(Ny-1)+\frac{1}{2}}^{n\ *}+(u)_{i^{\prime}-1,(Ny-1)+\frac{1}{2}}^{n\ *}}{(\Delta x)^{2}}+\frac{(v)_{i^{\prime},(Ny-1)+\frac{1}{2}+1}^{n\ *}-3(v)_{i^{\prime},(Ny-1)+\frac{1}{2}}^{n\ *}+2(v)_{bottom}^{n\ *}}{(\Delta y)^{2}}\right)\\[1.5ex]
+\end{split}\end{equation*}
+}
+\noindent 其中，
+\begin{equation*}\begin{split}
+    &\text{上邊界點：}(i^{\prime}\ ,\ (Ny-1)+\frac{1}{2})\\[1.5ex]
+    &u_{E(Ny-1)} = \frac{1}{2}(u_{i^{\prime}+\frac{1}{2}, (Ny-1)+\frac{1}{2}+\frac{1}{2}} + u_{i^{\prime}+\frac{1}{2}, (Ny-1)+\frac{1}{2}-\frac{1}{2}})\\[1.5ex]
+    &u_{W(Ny-1)} = \frac{1}{2}(u_{i^{\prime}-\frac{1}{2}, (Ny-1)+\frac{1}{2}+\frac{1}{2}} + u_{i^{\prime}-\frac{1}{2}, (Ny-1)+\frac{1}{2}-\frac{1}{2}})\\[1.5ex]
+\end{split}\end{equation*}
+\subsection{壓力場修正值邊界處理}
+\noindent (D(R計算第(N)步時間第(n)步壓力場修正值)的(定義域)):
+\begin{equation*}\begin{split}
+    x = i \in [1\ ,\ Nx]\ ,\ y = j \in [1\ ,\ Ny]
+\end{split}\end{equation*}
+\begin{figure}[H]{
+    \centering
+    \includegraphics[width=0.5\textwidth]{12.png}
+    \caption{\footnotesize $p_{i^{\prime},j^{\prime}}^{n}$的定義域}
+    \label{fig:pressure domain}
+}\end{figure}
+\subsubsection{參與迭代的內計算點}
+\noindent a.內計算點(範圍：$x = i^{\prime} \in [2,Nx-1]\ ,\ y = j^{\prime} \in [2,Ny-1]$)(內計算點：$i^{\prime}\ ,\ j^{\prime}$)\\[1.5ex]
+\noindent 迭代的方程為：(此迭代為計算步的迭代)\\
+\begin{equation}\left\{\begin{split}
+    &\bar {p}_{i^{\prime},j^{\prime}}^{N+1\ n\ \prime} = \frac{(\Delta x)^{2}(\Delta y)^{2}}{2((\Delta x)^{2}+(\Delta y)^{2})}\left[\frac{p_{i^{\prime}+1,j^{\prime}}^{N\ n\ \prime} - p_{i^{\prime}-1,j^{\prime}}^{N+1\ n\ \prime}}{(\Delta x)^{2}} + \frac{p_{i^{\prime},j^{\prime}+1}^{N\ n\ \prime} - p_{i^{\prime},j^{\prime}-1}^{N+1\ n\ \prime}}{(\Delta y)^{2}} \right] + \frac{d_{i^{\prime},j^{\prime}}}{\Delta t}\\[1.5ex]
+    &p_{i^{\prime},j^{\prime}}^{N+1\ n\ \prime} = p_{i^{\prime},j^{\prime}}^{N\ n\ \prime} + \omega(\bar {p}_{i^{\prime},j^{\prime}}^{N+1\ n\ \prime}  - p_{i^{\prime},j^{\prime}}^{N\ n\ \prime})\\[1.5ex]
+\end{split}\right.\end{equation}
+\subsubsection{未參與迭代的邊界計算點}
+\noindent a.左邊界計算點(範圍：$x = 1\ ,\ y = j^{\prime} \in [2,Ny-1]$)(左邊界計算點：$1\ ,\ j^{\prime}$)\\[1.5ex]
+\noindent 該點滿足的方程為：
+\begin{equation}\begin{split}
+    p_{1,j^{\prime}}^{N\ n\ \prime} = p_{2,j^{\prime}}^{N\ n\ \prime}\\[1.5ex]
+\end{split}\end{equation}
+\noindent b.右邊界計算點(範圍：$x = Nx\ ,\ y = j^{\prime} \in [2,Ny-1]$)(右邊界計算點：$Nx\ ,\ j^{\prime}$)\\[1.5ex]
+\noindent 該點滿足的方程為：
+\begin{equation}\begin{split}
+    p_{Nx,j^{\prime}}^{N\ n\ \prime} = p_{Nx-1,j^{\prime}}^{N\ n\ \prime}\\[1.5ex]
+\end{split}\end{equation}
+\noindent c.下邊界計算點(範圍：$x = i^{\prime}\ ,\ y = 1$)(下邊界計算點：$i^{\prime}\ ,\ 1$)\\[1.5ex]
+\noindent 該點滿足的方程為：
+\begin{equation}\begin{split}
+    p_{i^{\prime},1}^{N\ n\ \prime} = p_{i^{\prime},2}^{N\ n\ \prime}\\[1.5ex]
+\end{split}\end{equation}
+\noindent d.上邊界計算點(範圍：$x = i^{\prime}\ ,\ y = Ny$)(上邊界計算點：$i^{\prime}\ ,\ Ny$)\\[1.5ex]
+\noindent 該點滿足的方程為：
+\begin{equation}\begin{split}
+    p_{i^{\prime},Ny}^{N\ n\ \prime} = p_{i^{\prime},Ny-1}^{N\ n\ \prime}\\[1.5ex]
+\end{split}\end{equation}
+
+\newpage
+\appendix
+\numberwithin{subsection}{section}%連結子參數與母參數
+\numberwithin{equation}{section}%連結子參數與母參數
+%\renewcommand{\theequation}{\thesection.\arabic{equation}}%本來\theequation為應設方程式的編號：\chinese{\value{section}}.\arabic{equation}
+\numberwithin{equation}{section}
+
+
+\section{SIMPLE 算法下的等價性論述}
+\label{SIMPLE_equivalence}
+\subsection{等價論述一：SIMPLE簡化簡介}
+\label{SIMPLE_introduction}
+\noindent 若且唯若\\
+\begin{equation}
+\left\{
+\begin{aligned}
+    & (\rho u)_{i+\frac{1}{2},j}^{n+1\ \prime} = (\rho u)_{i+\frac{1}{2},j}^{n\ \prime} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ \prime} - p_{i,j}^{n\ \prime}) + \Delta t \cdot A^{\prime}  \quad \text{(...x mod-momentum eq.)}\\[1.5ex]
+    &(\rho u)_{i+\frac{1}{2},j}^{n\ \prime} + \Delta t \cdot A^{\prime} = 0\quad \left[\text{...x分量SIMPLE簡化}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\noindent 則：\\
+\begin{equation}
+\left\{
+\begin{aligned}
+    & (\rho u)_{i+\frac{1}{2},j}^{n+1\ \prime} = (\rho u)_{i+\frac{1}{2},j}^{n\ \prime} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ \prime} - p_{i,j}^{n\ \prime}) + \Delta t \cdot A^{\prime}  \quad \text{(...x mod-momentum eq.)}\\[1.5ex]
+    & (\rho u)_{i+\frac{1}{2},j}^{n+1\ \prime} = - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ \prime} - p_{i,j}^{n\ \prime})  \quad \text{(...SIMPLE-mod-x momentum eq.)}\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\noindent 則：\\
+\begin{equation}
+\left\{
+\begin{aligned}
+    &(\rho u)_{i+\frac{1}{2},j}^{n+1\ \prime} = - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ \prime} - p_{i,j}^{n\ \prime})  \quad \text{(...SIMPLE-mod-x momentum eq.)}\\[1.5ex]
+    &(\rho u)_{i+\frac{1}{2},j}^{n\ \prime} + \Delta t \cdot A^{\prime} = 0\quad \left[\text{...x分量SIMPLE簡化}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\noindent \textbf{說明：} 一般來說，x方向的動量修正方程
+\begin{equation*}
+    (\rho u)_{i+\frac{1}{2},j}^{n+1\ \prime} = (\rho u)_{i+\frac{1}{2},j}^{n\ \prime} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ \prime} - p_{i,j}^{n\ \prime}) + \Delta t \cdot A^{\prime}
+\end{equation*}
+並不直接等價於其簡化形式
+\begin{equation*}
+    (\rho u)_{i+\frac{1}{2},j}^{n+1\ \prime} = - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ \prime} - p_{i,j}^{n\ \prime})
+\end{equation*}
+為了建立兩者之間的等價關係，SIMPLE 算法引入了一個關鍵的假設，稱為 \textcolor{blue}{SIMPLE 簡化 (SIMPLE simplification)}，其數學形式為：
+\begin{equation*}
+    (\rho u)_{i+\frac{1}{2},j}^{n\ \prime} + \Delta t \cdot A^{\prime} = 0
+\end{equation*}
+這個假設的物理意義是，在計算下一次迭代動量修正量時，忽略了「初始動量修正量」與「初始對流項及黏滯項修正量」之和。儘管這是一個近似處理，但出於計算效率的考量，在 SIMPLE 算法中普遍採用此簡化形式。
+
+\subsection{等價論述二：SIMPLE.\ 1.\ A}
+\label{1.A.e}
+\noindent 若且唯若\\
+\begin{equation}
+(1)
+\left\{
+\begin{aligned}
+    \ &(\rho u)_{i+\frac{1}{2},j}^{n+1\ *} = (\rho u)_{i+\frac{1}{2},j}^{n\ *} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot A^{*}  \quad \text{(...pre-x momentum eq.)}\\[1.5ex]
+    \ &(\rho u)_{i+\frac{1}{2},j}^{n\ \prime} + \Delta t \cdot A^{\prime} = 0\quad \left[\text{...x分量SIMPLE簡化}\right]\\[1.5ex]
+    \ &u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ '} + u_{i+\frac{1}{2},j}^{n *}  \quad \left[\text{...x-velocity 校正}\right]\\[1.5ex]
+    \ &p_{i,j}^{n} = p_{i,j}^{n\ '} + p_{i,j}^{n *} \quad\left[\text{...pressure field 校正}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\noindent 則：
+\begin{equation}
+(2)
+\left\{
+\begin{aligned}
+    \ &(\rho u)_{i+\frac{1}{2},j}^{n+1\ *} = (\rho u)_{i+\frac{1}{2},j}^{n} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot A  \quad \text{(...SIMPLE-pre-x momentum eq.)}\\[1.5ex]
+    \ &(\rho u)_{i+\frac{1}{2},j}^{n\ \prime} + \Delta t \cdot A^{\prime} = 0\quad \left[\text{...x分量SIMPLE簡化}\right]\\[1.5ex]
+    \ &u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ '} + u_{i+\frac{1}{2},j}^{n *}  \quad \left[\text{...x-velocity 校正}\right]\\[1.5ex]
+    \ &p_{i,j}^{n} = p_{i,j}^{n\ '} + p_{i,j}^{n *} \quad\left[\text{...pressure field 校正}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\noindent 則：
+\begin{equation}
+(3)
+\left\{
+\begin{aligned}
+    \ &(\rho u)_{i+\frac{1}{2},j}^{n+1\ *} = (\rho u)_{i+\frac{1}{2},j}^{n} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot A \quad \text{(...pre-x momentum eq.)}\\[1.5ex]
+    \ &(\rho u)_{i+\frac{1}{2},j}^{n+1\ *} = (\rho u)_{i+\frac{1}{2},j}^{n} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot A  \quad \text{(...SIMPLE-pre-x momentum eq.)}\\[1.5ex]
+    \ &u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ '} + u_{i+\frac{1}{2},j}^{n *}  \quad \left[\text{...x-velocity 校正}\right]\\[1.5ex]
+    \ &p_{i,j}^{n} = p_{i,j}^{n\ '} + p_{i,j}^{n *} \quad\left[\text{...pressure field 校正}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+
+\newpage
+\subsection{等價論述三：SIMPLE.\ 1.\ B}
+\label{1.B.e}
+\noindent 若且唯若\\
+\begin{equation}
+(1)
+\left\{
+\begin{aligned}
+    \ &(\rho u)_{i+\frac{1}{2},j}^{n+1} = (\rho u)_{i+\frac{1}{2},j}^{n} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n} - p_{i,j}^{n}) + \Delta t \cdot A  \quad \text{(...x momentum eq.)}\\[1.5ex]
+    \ &(\rho u)_{i+\frac{1}{2},j}^{n\ \prime} + \Delta t \cdot A^{\prime} = 0\quad \left[\text{...x分量SIMPLE簡化}\right]\\[1.5ex]
+    \ &u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ '} + u_{i+\frac{1}{2},j}^{n *}  \quad \left[\text{...x-velocity 校正}\right]\\[1.5ex]
+    \ &p_{i,j}^{n} = p_{i,j}^{n\ '} + p_{i,j}^{n *} \quad\left[\text{...pressure field 校正}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\noindent 則：\\
+\begin{equation}
+(2)
+\left\{
+\begin{aligned}
+    \ &(\rho u)_{i+\frac{1}{2},j}^{n+1} = (\rho u)_{i+\frac{1}{2},j}^{n\ *} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n} - p_{i,j}^{n}) + \Delta t \cdot A^{*}  \quad \text{(...SIMPLE-x momentum eq.)}\\[1.5ex]
+    \ &(\rho u)_{i+\frac{1}{2},j}^{n\ \prime} + \Delta t \cdot A^{\prime} = 0\quad \left[\text{...x分量SIMPLE簡化}\right]\\[1.5ex]
+    \ &u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ '} + u_{i+\frac{1}{2},j}^{n *}  \quad \left[\text{...x-velocity 校正}\right]\\[1.5ex]
+    \ &p_{i,j}^{n} = p_{i,j}^{n\ '} + p_{i,j}^{n *} \quad\left[\text{...pressure field 校正}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\noindent 則：\\
+\begin{equation}
+(3)
+\left\{
+\begin{aligned}
+    \ &(\rho u)_{i+\frac{1}{2},j}^{n+1} = (\rho u)_{i+\frac{1}{2},j}^{n} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n} - p_{i,j}^{n}) + \Delta t \cdot A  \quad \text{(...x momentum eq.)}\\[1.5ex]
+    \ &(\rho u)_{i+\frac{1}{2},j}^{n+1} = (\rho u)_{i+\frac{1}{2},j}^{n\ *} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n} - p_{i,j}^{n}) + \Delta t \cdot A^{*}  \quad \text{(...SIMPLE-x momentum eq.)}\\[1.5ex]
+    \ &u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ '} + u_{i+\frac{1}{2},j}^{n *}  \quad \left[\text{...x-velocity 校正}\right]\\[1.5ex]
+    \ &p_{i,j}^{n} = p_{i,j}^{n\ '} + p_{i,j}^{n *} \quad\left[\text{...pressure field 校正}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\newpage
+\subsection{等價論述四：SIMPLE.\ 2.\ A}
+\label{2.A.e}
+\noindent 若且唯若\\
+\begin{equation}
+(1)
+\left\{
+\begin{aligned}
+    \ &(\rho u)_{i+\frac{1}{2},j}^{n+1\ *} = (\rho u)_{i+\frac{1}{2},j}^{n\ *} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot A^{*}  \quad \text{(...pre-x momentum eq.)}\\[1.5ex]
+    \ &(\rho u)_{i+\frac{1}{2},j}^{n+1\ \prime} = - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ \prime} - p_{i,j}^{n\ \prime})  \quad \text{(...SIMPLE-mod-x momentum eq.)}\\[1.5ex]
+    \ &u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ '} + u_{i+\frac{1}{2},j}^{n *}  \quad \left[\text{...x-velocity 校正}\right]\\[1.5ex]
+    \ &p_{i,j}^{n} = p_{i,j}^{n\ '} + p_{i,j}^{n *} \quad\left[\text{...pressure field 校正}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\noindent 則：\\
+\begin{equation}
+(2)
+\left\{
+\begin{aligned}
+    \ &(\rho u)_{i+\frac{1}{2},j}^{n+1} = (\rho u)_{i+\frac{1}{2},j}^{n\ *} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n} - p_{i,j}^{n}) + \Delta t \cdot A^{*}  \quad \text{(...SIMPLE-x momentum eq.)}\\[1.5ex]
+    \ &(\rho u)_{i+\frac{1}{2},j}^{n+1\ \prime} = - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ \prime} - p_{i,j}^{n\ \prime})  \quad \text{(...SIMPLE-mod-x momentum eq.)}\\[1.5ex]
+    \ &u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ '} + u_{i+\frac{1}{2},j}^{n *}  \quad \left[\text{...x-velocity 校正}\right]\\[1.5ex]
+    \ &p_{i,j}^{n} = p_{i,j}^{n\ '} + p_{i,j}^{n *} \quad\left[\text{...pressure field 校正}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\noindent 則：\\
+\begin{equation}
+(3)
+\left\{
+\begin{aligned}
+    \ &(\rho u)_{i+\frac{1}{2},j}^{n+1} = (\rho u)_{i+\frac{1}{2},j}^{n\ *} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n} - p_{i,j}^{n}) + \Delta t \cdot A^{*}  \quad \text{(...SIMPLE-x momentum eq.)}\\[1.5ex]
+    \ &(\rho u)_{i+\frac{1}{2},j}^{n+1\ *} = (\rho u)_{i+\frac{1}{2},j}^{n\ *} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot A^{*}  \quad \text{(...pre-x momentum eq.)}\\[1.5ex]  
+    \ &u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ '} + u_{i+\frac{1}{2},j}^{n *}  \quad \left[\text{...x-velocity 校正}\right]\\[1.5ex]
+    \ &p_{i,j}^{n} = p_{i,j}^{n\ '} + p_{i,j}^{n *} \quad\left[\text{...pressure field 校正}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+
+\newpage
+\subsection{等價論述五：SIMPLE.\ 2.\ B}
+\label{2.B.e}
+\noindent 若且唯若\\
+\begin{equation}
+(1)
+\left\{
+\begin{aligned}
+    \ &(\rho u)_{i+\frac{1}{2},j}^{n+1} = (\rho u)_{i+\frac{1}{2},j}^{n} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n} - p_{i,j}^{n}) + \Delta t \cdot A  \quad \text{(...x momentum eq.)}\\[1.5ex]
+    \ &(\rho u)_{i+\frac{1}{2},j}^{n+1\ \prime} = - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ \prime} - p_{i,j}^{n\ \prime})  \quad \text{(...SIMPLE-mod-x momentum eq.)}\\[1.5ex]
+    \ &u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ '} + u_{i+\frac{1}{2},j}^{n *}  \quad \left[\text{...x-velocity 校正}\right]\\[1.5ex]
+    \ &p_{i,j}^{n} = p_{i,j}^{n\ '} + p_{i,j}^{n *} \quad\left[\text{...pressure field 校正}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\noindent 則：\\
+\begin{equation}
+(2)
+\left\{
+\begin{aligned}
+    \ &(\rho u)_{i+\frac{1}{2},j}^{n+1\ *} = (\rho u)_{i+\frac{1}{2},j}^{n} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot A \quad \text{(...SIMPLE-pre-x momentum eq.)}\\[1.5ex]
+    \ &(\rho u)_{i+\frac{1}{2},j}^{n+1\ \prime} = - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ \prime} - p_{i,j}^{n\ \prime})  \quad \text{(...SIMPLE-mod-x momentum eq.)}\\[1.5ex]
+    \ &u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ '} + u_{i+\frac{1}{2},j}^{n *}  \quad \left[\text{...x-velocity 校正}\right]\\[1.5ex]
+    \ &p_{i,j}^{n} = p_{i,j}^{n\ '} + p_{i,j}^{n *} \quad\left[\text{...pressure field 校正}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\noindent 則：\\
+\begin{equation}
+(3)
+\left\{
+\begin{aligned}
+    \ &(\rho u)_{i+\frac{1}{2},j}^{n+1} = (\rho u)_{i+\frac{1}{2},j}^{n} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n} - p_{i,j}^{n}) + \Delta t \cdot A  \quad \text{(...x momentum eq.)}\\[1.5ex]
+    \ &(\rho u)_{i+\frac{1}{2},j}^{n+1\ *} = (\rho u)_{i+\frac{1}{2},j}^{n} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot A \quad \text{(...SIMPLE-pre-x momentum eq.)}\\[1.5ex]
+    \ &u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ '} + u_{i+\frac{1}{2},j}^{n *}  \quad \left[\text{...x-velocity 校正}\right]\\[1.5ex]
+    \ &p_{i,j}^{n} = p_{i,j}^{n\ '} + p_{i,j}^{n *} \quad\left[\text{...pressure field 校正}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\newpage
+
+
+\section{SIMPLE 算法相關方程組}
+\label{SIMPLE equations}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{方程組一：基礎方程組}
+\label{sec:basic.s}
+\noindent 以下三方程組彼此等價：\\
+\begin{equation}
+(1)
+\left\{
+\begin{aligned}
+    &(1)\ (\rho u)_{i+\frac{1}{2},j}^{n+1} = (\rho u)_{i+\frac{1}{2},j}^{n} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n} - p_{i,j}^{n}) + \Delta t \cdot A  \quad \text{(...x momentum eq.)}\\[1.5ex]
+    &(2)\ (\rho u)_{i+\frac{1}{2},j}^{n+1\ *} = (\rho u)_{i+\frac{1}{2},j}^{n\ *} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot A^{*}  \quad \text{(...pre-x momentum eq.)}\\[1.5ex]
+    &(3)\ u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ \prime} + u_{i+\frac{1}{2},j}^{n\ *}  \quad \left[\text{...x-velocity 校正}\right]\\[1.5ex]
+    &(4)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1} = (\rho v)_{i,j+\frac{1}{2}}^{n} - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n} - p_{i,j}^{n}) + \Delta t \cdot B  \quad \text{(...y momentum eq.)}\\[1.5ex]
+    &(5)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} = (\rho v)_{i,j+\frac{1}{2}}^{n\ *} - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot B^{*}  \quad \text{(...pre-y momentum eq.)}\\[1.5ex]
+    &(6)\ v_{i,j+\frac{1}{2}}^{n} = v_{i,j+\frac{1}{2}}^{n\ \prime} + v_{i,j+\frac{1}{2}}^{n\ *} \quad \left[\text{...y-velocity 校正}\right]\\[1.5ex]
+    &(7)\ D_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1} - (\rho u)_{i-\frac{1}{2},j}^{n+1}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1} - (\rho v)_{i,j-\frac{1}{2}}^{n+1}}{\Delta y} = 0 \quad \text{(...continuity eq.)}\\[1.5ex]
+    &(8)\ d_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1\ *} - (\rho u)_{i-\frac{1}{2},j}^{n+1\ *}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} - (\rho v)_{i,j-\frac{1}{2}}^{n+1\ *}}{\Delta y} = 0 \quad \text{(...pre-continuity eq.)}\\[1.5ex]
+    &(9)\ p_{i,j}^{n} = p_{i,j}^{n\ \prime} + p_{i,j}^{n\ *} \quad\left[\text{...pressure field 校正}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\noindent 上式等價於：\\
+\begin{equation}
+(2)
+\left\{
+\begin{aligned}
+    &(1)\ (\rho u)_{i+\frac{1}{2},j}^{n+1\ \prime} = (\rho u)_{i+\frac{1}{2},j}^{n\ \prime} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ \prime} - p_{i,j}^{n\ \prime}) + \Delta t \cdot A^{\prime}  \quad \text{(...mod-x momentum eq.)}\\[1.5ex]
+    &(2)\ (\rho u)_{i+\frac{1}{2},j}^{n+1\ *} = (\rho u)_{i+\frac{1}{2},j}^{n\ *} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot A^{*}  \quad \text{(...pre-x momentum eq.)}\\[1.5ex]
+    &(3)\ u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ \prime} + u_{i+\frac{1}{2},j}^{n\ *}  \quad \left[\text{...x-velocity 校正}\right]\\[1.5ex]
+    &(4)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1\ \prime} = (\rho v)_{i,j+\frac{1}{2}}^{n\ \prime} - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n\ \prime} - p_{i,j}^{n\ \prime}) + \Delta t \cdot B^{\prime}  \quad \text{(...mod-y momentum eq.)}\\[1.5ex]
+    &(5)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} = (\rho v)_{i,j+\frac{1}{2}}^{n\ *} - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot B^{*}  \quad \text{(...pre-y momentum eq.)}\\[1.5ex]
+    &(6)\ v_{i,j+\frac{1}{2}}^{n} = v_{i,j+\frac{1}{2}}^{n\ \prime} + v_{i,j+\frac{1}{2}}^{n\ *} \quad \left[\text{...y-velocity 校正}\right]\\[1.5ex]
+    &(7)\ D_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1} - (\rho u)_{i-\frac{1}{2},j}^{n+1}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1} - (\rho v)_{i,j-\frac{1}{2}}^{n+1}}{\Delta y} = 0 \quad \text{(...continuity eq.)}\\[1.5ex]
+    &(8)\ d_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1\ *} - (\rho u)_{i-\frac{1}{2},j}^{n+1\ *}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} - (\rho v)_{i,j-\frac{1}{2}}^{n+1\ *}}{\Delta y} = 0 \quad \text{(...pre-continuity eq.)}\\[1.5ex]
+    &(9)\ p_{i,j}^{n} = p_{i,j}^{n\ \prime} + p_{i,j}^{n\ *} \quad\left[\text{...pressure field 校正}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\noindent 上式等價於：\\
+\begin{equation}
+(3)
+\left\{
+\begin{aligned}
+    &(1)\ (\rho u)_{i+\frac{1}{2},j}^{n+1} = (\rho u)_{i+\frac{1}{2},j}^{n} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n} - p_{i,j}^{n}) + \Delta t \cdot A  \quad \text{(...x momentum eq.)}\\[1.5ex]
+    &(2)\ (\rho u)_{i+\frac{1}{2},j}^{n+1\ \prime} = (\rho u)_{i+\frac{1}{2},j}^{n\ \prime} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ \prime} - p_{i,j}^{n\ \prime}) + \Delta t \cdot A^{\prime}  \quad \text{(...mod-x momentum eq.)}\\[1.5ex]
+    &(3)\ u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ \prime} + u_{i+\frac{1}{2},j}^{n\ *}  \quad \left[\text{...x-velocity 校正}\right]\\[1.5ex]
+    &(4)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1} = (\rho v)_{i,j+\frac{1}{2}}^{n} - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n} - p_{i,j}^{n}) + \Delta t \cdot B  \quad \text{(...y momentum eq.)}\\[1.5ex]
+    &(5)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1\ \prime} = (\rho v)_{i,j+\frac{1}{2}}^{n\ \prime} - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n\ \prime} - p_{i,j}^{n\ \prime}) + \Delta t \cdot B^{\prime}  \quad \text{(...mod-y momentum eq.)}\\[1.5ex]
+    &(6)\ v_{i,j+\frac{1}{2}}^{n} = v_{i,j+\frac{1}{2}}^{n\ \prime} + v_{i,j+\frac{1}{2}}^{n\ *} \quad \left[\text{...y-velocity 校正}\right]\\[1.5ex]
+    &(7)\ D_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1} - (\rho u)_{i-\frac{1}{2},j}^{n+1}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1} - (\rho v)_{i,j-\frac{1}{2}}^{n+1}}{\Delta y} = 0 \quad \text{(...continuity eq.)}\\[1.5ex]
+    &(8)\ d_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1\ *} - (\rho u)_{i-\frac{1}{2},j}^{n+1\ *}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} - (\rho v)_{i,j-\frac{1}{2}}^{n+1\ *}}{\Delta y} = 0 \quad \text{(...pre-continuity eq.)}\\[1.5ex]
+    &(9)\ p_{i,j}^{n} = p_{i,j}^{n\ \prime} + p_{i,j}^{n\ *} \quad\left[\text{...pressure field 校正}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{方程組二：SIMPLE.\ 1.\ A}
+\label{1.A.s}
+\noindent 以下三方程組彼此等價：\\
+\begin{equation}
+(1)
+\left\{
+\begin{aligned}
+    &(1)\ (\rho u)_{i+\frac{1}{2},j}^{n+1\ *} = (\rho u)_{i+\frac{1}{2},j}^{n\ *} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot A^{*}  \quad \text{(...pre-x momentum eq.)}\\[1.5ex]
+    &(2)\ (\rho u)_{i+\frac{1}{2},j}^{n\ \prime} + \Delta t \cdot A^{\prime} = 0\quad \left[\text{...x分量SIMPLE簡化}\right]\\[1.5ex]
+    &(3)\ u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ \prime} + u_{i+\frac{1}{2},j}^{n\ *}  \quad \left[\text{...x-velocity 校正}\right]\\[1.5ex]
+    &(4)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} = (\rho v)_{i,j+\frac{1}{2}}^{n\ *} - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot B^{*}  \quad \text{(...pre-y momentum eq.)}\\[1.5ex]
+    &(5)\ (\rho v)_{i,j+\frac{1}{2}}^{n\ \prime} + \Delta t \cdot B^{\prime} = 0 \quad\left[\text{...y分量SIMPLE簡化}\right]\\[1.5ex]
+    &(6)\ v_{i,j+\frac{1}{2}}^{n} = v_{i,j+\frac{1}{2}}^{n\ \prime} + v_{i,j+\frac{1}{2}}^{n\ *} \quad \left[\text{...y-velocity 校正}\right]\\[1.5ex]
+    &(7)\ D_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1} - (\rho u)_{i-\frac{1}{2},j}^{n+1}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1} - (\rho v)_{i,j-\frac{1}{2}}^{n+1}}{\Delta y} = 0 \quad \text{(...continuity eq.)}\\[1.5ex]
+    &(8)\ d_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1\ *} - (\rho u)_{i-\frac{1}{2},j}^{n+1\ *}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} - (\rho v)_{i,j-\frac{1}{2}}^{n+1\ *}}{\Delta y} = 0 \quad \text{(...pre-continuity eq.)}\\[1.5ex]
+    &(9)\ p_{i,j}^{n} = p_{i,j}^{n\ \prime} + p_{i,j}^{n\ *} \quad\left[\text{...pressure field 校正}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\noindent 上式等價於：\\
+\begin{equation}
+(2)
+\left\{
+\begin{aligned}
+    &(1)\ (\rho u)_{i+\frac{1}{2},j}^{n+1\ *} = (\rho u)_{i+\frac{1}{2},j}^{n} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot A  \quad \text{(...SIMPLE-pre-x momentum eq.)}\\[1.5ex]
+    &(2)\ (\rho u)_{i+\frac{1}{2},j}^{n\ \prime} + \Delta t \cdot A^{\prime} = 0\quad \left[\text{...x分量SIMPLE簡化}\right]\\[1.5ex]
+    &(3)\ u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ \prime} + u_{i+\frac{1}{2},j}^{n\ *}  \quad \left[\text{...x-velocity 校正}\right]\\[1.5ex]
+    &(4)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} = (\rho v)_{i,j+\frac{1}{2}}^{n} - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot B  \quad \text{(...SIMPLE-pre-y momentum eq.)}\\[1.5ex]
+    &(5)\ (\rho v)_{i,j+\frac{1}{2}}^{n\ \prime} + \Delta t \cdot B^{\prime} = 0 \quad\left[\text{...y分量SIMPLE簡化}\right]\\[1.5ex]
+    &(6)\ v_{i,j+\frac{1}{2}}^{n} = v_{i,j+\frac{1}{2}}^{n\ \prime} + v_{i,j+\frac{1}{2}}^{n\ *} \quad \left[\text{...y-velocity 校正}\right]\\[1.5ex]
+    &(7)\ D_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1} - (\rho u)_{i-\frac{1}{2},j}^{n+1}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1} - (\rho v)_{i,j-\frac{1}{2}}^{n+1}}{\Delta y} = 0 \quad \text{(...continuity eq.)}\\[1.5ex]
+    &(8)\ d_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1\ *} - (\rho u)_{i-\frac{1}{2},j}^{n+1\ *}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} - (\rho v)_{i,j-\frac{1}{2}}^{n+1\ *}}{\Delta y} = 0 \quad \text{(...pre-continuity eq.)}\\[1.5ex]
+    &(9)\ p_{i,j}^{n} = p_{i,j}^{n\ \prime} + p_{i,j}^{n\ *} \quad\left[\text{...pressure field 校正}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\noindent 上式等價於：\\
+\begin{equation}
+(3)
+\left\{
+\begin{aligned}
+    &(1)\ (\rho u)_{i+\frac{1}{2},j}^{n+1\ *} = (\rho u)_{i+\frac{1}{2},j}^{n\ *} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot A^{*}  \quad \text{(...pre-x momentum eq.)}\\[1.5ex]
+    &(2)\ (\rho u)_{i+\frac{1}{2},j}^{n+1\ *} = (\rho u)_{i+\frac{1}{2},j}^{n} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot A  \quad \text{(...SIMPLE-pre-x momentum eq.)}\\[1.5ex]
+    &(3)\ u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ \prime} + u_{i+\frac{1}{2},j}^{n *}  \quad \left[\text{...x-velocity 校正}\right]\\[1.5ex]
+    &(4)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} = (\rho v)_{i,j+\frac{1}{2}}^{n\ *} - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot B^{*}  \quad \text{(...pre-y momentum eq.)}\\[1.5ex]
+    &(5)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} = (\rho v)_{i,j+\frac{1}{2}}^{n} - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot B  \quad \text{(...SIMPLE-pre-y momentum eq.)}\\[1.5ex]
+    &(6)\ v_{i,j+\frac{1}{2}}^{n} = v_{i,j+\frac{1}{2}}^{n\ \prime} + v_{i,j+\frac{1}{2}}^{n\ *} \quad \left[\text{...y-velocity 校正}\right]\\[1.5ex]
+    &(7)\ D_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1} - (\rho u)_{i-\frac{1}{2},j}^{n+1}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1} - (\rho v)_{i,j-\frac{1}{2}}^{n+1}}{\Delta y} = 0 \quad \text{(...continuity eq.)}\\[1.5ex]
+    &(8)\ d_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1\ *} - (\rho u)_{i-\frac{1}{2},j}^{n+1\ *}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} - (\rho v)_{i,j-\frac{1}{2}}^{n+1\ *}}{\Delta y} = 0 \quad \text{(...pre-continuity eq.)}\\[1.5ex]
+    &(9)\ p_{i,j}^{n} = p_{i,j}^{n\ \prime} + p_{i,j}^{n\ *} \quad\left[\text{...pressure field 校正}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{方程組三：SIMPLE.\ 1.\ B}
+\label{1.B.s}
+\noindent 以下三方程組彼此等價：\\
+\begin{equation}
+(1)
+\left\{
+\begin{aligned}
+    &(1)\ (\rho u)_{i+\frac{1}{2},j}^{n+1} = (\rho u)_{i+\frac{1}{2},j}^{n} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n} - p_{i,j}^{n}) + \Delta t \cdot A  \quad \text{(...x momentum eq.)}\\[1.5ex]
+    &(2)\ (\rho u)_{i+\frac{1}{2},j}^{n\ \prime} + \Delta t \cdot A^{\prime} = 0\quad \left[\text{...x分量SIMPLE簡化}\right]\\[1.5ex]
+    &(3)\ u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ '} + u_{i+\frac{1}{2},j}^{n *}  \quad \left[\text{...x-velocity 校正}\right]\\[1.5ex]
+    &(4)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1} = (\rho v)_{i,j+\frac{1}{2}}^{n} - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n} - p_{i,j}^{n}) + \Delta t \cdot B  \quad \text{(...y momentum eq.)}\\[1.5ex]
+    &(5)\ (\rho v)_{i,j+\frac{1}{2}}^{n\ \prime} + \Delta t \cdot B^{\prime} = 0 \quad\left[\text{...y分量SIMPLE簡化}\right]\\[1.5ex]
+    &(6)\ v_{i,j+\frac{1}{2}}^{n} = v_{i,j+\frac{1}{2}}^{n\ \prime} + v_{i,j+\frac{1}{2}}^{n\ *} \quad \left[\text{...y-velocity 校正}\right]\\[1.5ex]
+    &(7)\ D_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1} - (\rho u)_{i-\frac{1}{2},j}^{n+1}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1} - (\rho v)_{i,j-\frac{1}{2}}^{n+1}}{\Delta y} = 0 \quad \text{(...continuity eq.)}\\[1.5ex]
+    &(8)\ d_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1\ *} - (\rho u)_{i-\frac{1}{2},j}^{n+1\ *}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} - (\rho v)_{i,j-\frac{1}{2}}^{n+1\ *}}{\Delta y} = 0 \quad \text{(...pre-continuity eq.)}\\[1.5ex]
+    &(9)\ p_{i,j}^{n} = p_{i,j}^{n\ \prime} + p_{i,j}^{n\ *} \quad\left[\text{...pressure field 校正}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\noindent 上式等價於：\\
+\begin{equation}
+(2)
+\left\{
+\begin{aligned}
+    &(1)\ (\rho u)_{i+\frac{1}{2},j}^{n+1} = (\rho u)_{i+\frac{1}{2},j}^{n\ *} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n} - p_{i,j}^{n}) + \Delta t \cdot A^{*}  \quad \text{(...SIMPLE-x momentum eq.)}\\[1.5ex]
+    &(2)\ (\rho u)_{i+\frac{1}{2},j}^{n\ \prime} + \Delta t \cdot A^{\prime} = 0\quad \left[\text{...x分量SIMPLE簡化}\right]\\[1.5ex]
+    &(3)\ u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ '} + u_{i+\frac{1}{2},j}^{n *}  \quad \left[\text{...x-velocity 校正}\right]\\[1.5ex]
+    &(4)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1} = (\rho v)_{i,j+\frac{1}{2}}^{n\ *} - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n} - p_{i,j}^{n}) + \Delta t \cdot B^{*}  \quad \text{(...SIMPLE-y momentum eq.)}\\[1.5ex]
+    &(5)\ (\rho v)_{i,j+\frac{1}{2}}^{n\ \prime} + \Delta t \cdot B^{\prime} = 0 \quad\left[\text{...y分量SIMPLE簡化}\right]\\[1.5ex]
+    &(6)\ v_{i,j+\frac{1}{2}}^{n} = v_{i,j+\frac{1}{2}}^{n\ \prime} + v_{i,j+\frac{1}{2}}^{n\ *} \quad \left[\text{...y-velocity 校正}\right]\\[1.5ex]
+    &(7)\ D_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1} - (\rho u)_{i-\frac{1}{2},j}^{n+1}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1} - (\rho v)_{i,j-\frac{1}{2}}^{n+1}}{\Delta y} = 0 \quad \text{(...continuity eq.)}\\[1.5ex]
+    &(8)\ d_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1\ *} - (\rho u)_{i-\frac{1}{2},j}^{n+1\ *}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} - (\rho v)_{i,j-\frac{1}{2}}^{n+1\ *}}{\Delta y} = 0 \quad \text{(...pre-continuity eq.)}\\[1.5ex]
+    &(9)\ p_{i,j}^{n} = p_{i,j}^{n\ \prime} + p_{i,j}^{n\ *} \quad\left[\text{...pressure field 校正}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\noindent 上式等價於：\\
+\begin{equation}
+(3)
+\left\{
+\begin{aligned}
+    &(1)\ (\rho u)_{i+\frac{1}{2},j}^{n+1} = (\rho u)_{i+\frac{1}{2},j}^{n} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n} - p_{i,j}^{n}) + \Delta t \cdot A  \quad \text{(...x momentum eq.)}\\[1.5ex]
+    &(2)\ (\rho u)_{i+\frac{1}{2},j}^{n+1} = (\rho u)_{i+\frac{1}{2},j}^{n\ *} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n} - p_{i,j}^{n}) + \Delta t \cdot A^{*}  \quad \text{(...SIMPLE-x momentum eq.)}\\[1.5ex]
+    &(3)\ u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ '} + u_{i+\frac{1}{2},j}^{n *}  \quad \left[\text{...x-velocity 校正}\right]\\[1.5ex]
+    &(4)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1} = (\rho v)_{i,j+\frac{1}{2}}^{n} - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n} - p_{i,j}^{n}) + \Delta t \cdot B  \quad \text{(...y momentum eq.)}\\[1.5ex]
+    &(5)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1} = (\rho v)_{i,j+\frac{1}{2}}^{n\ *} - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n} - p_{i,j}^{n}) + \Delta t \cdot B^{*}  \quad \text{(...SIMPLE-y momentum eq.)}\\[1.5ex]
+    &(6)\ v_{i,j+\frac{1}{2}}^{n} = v_{i,j+\frac{1}{2}}^{n\ \prime} + v_{i,j+\frac{1}{2}}^{n\ *} \quad \left[\text{...y-velocity 校正}\right]\\[1.5ex]
+    &(7)\ D_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1} - (\rho u)_{i-\frac{1}{2},j}^{n+1}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1} - (\rho v)_{i,j-\frac{1}{2}}^{n+1}}{\Delta y} = 0 \quad \text{(...continuity eq.)}\\[1.5ex]
+    &(8)\ d_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1\ *} - (\rho u)_{i-\frac{1}{2},j}^{n+1\ *}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} - (\rho v)_{i,j-\frac{1}{2}}^{n+1\ *}}{\Delta y} = 0 \quad \text{(...pre-continuity eq.)}\\[1.5ex]
+    &(9)\ p_{i,j}^{n} = p_{i,j}^{n\ \prime} + p_{i,j}^{n\ *} \quad\left[\text{...pressure field 校正}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{方程組四：SIMPLE.\ 2.\ A}
+\label{2.A.s}
+\noindent 以下三方程組彼此等價：\\
+\begin{equation}
+(1)
+\left\{
+\begin{aligned}
+    &(1)\ (\rho u)_{i+\frac{1}{2},j}^{n+1\ *} = (\rho u)_{i+\frac{1}{2},j}^{n\ *} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot A^{*}  \quad \text{(...pre-x momentum eq.)}\\[1.5ex]
+    &(2)\ (\rho u)_{i+\frac{1}{2},j}^{n+1\ \prime} = - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ \prime} - p_{i,j}^{n\ \prime})  \quad \text{(...SIMPLE-mod-x momentum eq.)}\\[1.5ex]
+    &(3)\ u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ \prime} + u_{i+\frac{1}{2},j}^{n\ *}  \quad \left[\text{...x-velocity 校正}\right]\\[1.5ex]
+    &(4)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} = (\rho v)_{i,j+\frac{1}{2}}^{n\ *} - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot B^{*}  \quad \text{(...y pre-momentum eq.)}\\[1.5ex]
+    &(5)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1\ \prime} =  - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n\ \prime} - p_{i,j}^{n\ \prime}) \quad \text{(...SIMPLE-mod-y momentum eq.)}\\[1.5ex]
+    &(6)\ v_{i,j+\frac{1}{2}}^{n} = v_{i,j+\frac{1}{2}}^{n\ \prime} + v_{i,j+\frac{1}{2}}^{n\ *} \quad \left[\text{...y-velocity 校正}\right]\\[1.5ex]
+    &(7)\ D_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1} - (\rho u)_{i-\frac{1}{2},j}^{n+1}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1} - (\rho v)_{i,j-\frac{1}{2}}^{n+1}}{\Delta y} = 0 \quad \text{(...continuity eq.)}\\[1.5ex]
+    &(8)\ d_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1\ *} - (\rho u)_{i-\frac{1}{2},j}^{n+1\ *}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} - (\rho v)_{i,j-\frac{1}{2}}^{n+1\ *}}{\Delta y} = 0 \quad \text{(...pre-continuity eq.)}\\[1.5ex]
+    &(9)\ p_{i,j}^{n} = p_{i,j}^{n\ \prime} + p_{i,j}^{n\ *} \quad\left[\text{...pressure field 校正}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\noindent 上式等價於：\\
+\begin{equation}
+(2)
+\left\{
+\begin{aligned}
+    &(1)\ (\rho u)_{i+\frac{1}{2},j}^{n+1} = (\rho u)_{i+\frac{1}{2},j}^{n\ *} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n} - p_{i,j}^{n}) + \Delta t \cdot A^{*}  \quad \text{(...SIMPLE-x momentum eq.)}\\[1.5ex]
+    &(2)\ (\rho u)_{i+\frac{1}{2},j}^{n+1\ \prime} = - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ \prime} - p_{i,j}^{n\ \prime})  \quad \text{(...SIMPLE-mod-x momentum eq.)}\\[1.5ex]
+    &(3)\ u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ \prime} + u_{i+\frac{1}{2},j}^{n\ *}  \quad \left[\text{...x-velocity 校正}\right]\\[1.5ex]
+    &(4)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1} = (\rho v)_{i,j+\frac{1}{2}}^{n\ *} - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n} - p_{i,j}^{n}) + \Delta t \cdot B^{*}  \quad \text{(...SIMPLE-y momentum eq.)}\\[1.5ex]
+    &(5)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1\ \prime} =  - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n\ \prime} - p_{i,j}^{n\ \prime}) \quad \text{(...SIMPLE-mod-y momentum eq.)}\\[1.5ex]
+    &(6)\ v_{i,j+\frac{1}{2}}^{n} = v_{i,j+\frac{1}{2}}^{n\ \prime} + v_{i,j+\frac{1}{2}}^{n\ *} \quad \left[\text{...y-velocity 校正}\right]\\[1.5ex]
+    &(7)\ D_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1} - (\rho u)_{i-\frac{1}{2},j}^{n+1}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1} - (\rho v)_{i,j-\frac{1}{2}}^{n+1}}{\Delta y} = 0 \quad \text{(...continuity eq.)}\\[1.5ex]
+    &(8)\ d_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1\ *} - (\rho u)_{i-\frac{1}{2},j}^{n+1\ *}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} - (\rho v)_{i,j-\frac{1}{2}}^{n+1\ *}}{\Delta y} = 0 \quad \text{(...pre-continuity eq.)}\\[1.5ex]
+    &(9)\ p_{i,j}^{n} = p_{i,j}^{n\ \prime} + p_{i,j}^{n\ *} \quad\left[\text{...pressure field 校正}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\noindent 上式等價於：\\
+\begin{equation}
+(3)
+\left\{
+\begin{aligned}
+    &(1)\ (\rho u)_{i+\frac{1}{2},j}^{n+1} = (\rho u)_{i+\frac{1}{2},j}^{n\ *} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n} - p_{i,j}^{n}) + \Delta t \cdot A^{*}  \quad \text{(...SIMPLE-x momentum eq.)}\\[1.5ex]
+    &(2)\ (\rho u)_{i+\frac{1}{2},j}^{n+1\ *} = (\rho u)_{i+\frac{1}{2},j}^{n\ *} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot A^{*}  \quad \text{(...pre-x momentum eq.)}\\[1.5ex]
+    &(3)\ u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ \prime} + u_{i+\frac{1}{2},j}^{n\ *}  \quad \left[\text{...x-velocity 校正}\right]\\[1.5ex]
+    &(4)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} = (\rho v)_{i,j+\frac{1}{2}}^{n\ *} - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot B^{*}  \quad \text{(...y pre-momentum eq.)}\\[1.5ex]
+    &(5)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1} = (\rho v)_{i,j+\frac{1}{2}}^{n\ *} - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n} - p_{i,j}^{n}) + \Delta t \cdot B^{*}  \quad \text{(...SIMPLE-y momentum eq.)}\\[1.5ex]
+    &(6)\ v_{i,j+\frac{1}{2}}^{n} = v_{i,j+\frac{1}{2}}^{n\ \prime} + v_{i,j+\frac{1}{2}}^{n\ *} \quad \left[\text{...y-velocity 校正}\right]\\[1.5ex]
+    &(7)\ D_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1} - (\rho u)_{i-\frac{1}{2},j}^{n+1}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1} - (\rho v)_{i,j-\frac{1}{2}}^{n+1}}{\Delta y} = 0 \quad \text{(...continuity eq.)}\\[1.5ex]
+    &(8)\ d_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1\ *} - (\rho u)_{i-\frac{1}{2},j}^{n+1\ *}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} - (\rho v)_{i,j-\frac{1}{2}}^{n+1\ *}}{\Delta y} = 0 \quad \text{(...pre-continuity eq.)}\\[1.5ex]
+    &(9)\ p_{i,j}^{n} = p_{i,j}^{n\ \prime} + p_{i,j}^{n\ *} \quad\left[\text{...pressure field 校正}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{方程組五：SIMPLE.\ 2.\ B}
+\label{2.B.s}
+\noindent 以下三方程組彼此等價：\\
+\begin{equation}
+(1)
+\left\{
+\begin{aligned}
+    &(1)\ (\rho u)_{i+\frac{1}{2},j}^{n+1} = (\rho u)_{i+\frac{1}{2},j}^{n} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n} - p_{i,j}^{n}) + \Delta t \cdot A  \quad \text{(...x momentum eq.)}\\[1.5ex]
+    &(2)\ (\rho u)_{i+\frac{1}{2},j}^{n+1\ \prime} = - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ \prime} - p_{i,j}^{n\ \prime})  \quad \text{(...SIMPLE-mod-x momentum eq.)}\\[1.5ex]
+    &(3)\ u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ '} + u_{i+\frac{1}{2},j}^{n *}  \quad \left[\text{...x-velocity 校正}\right]\\[1.5ex]
+    &(4)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1} = (\rho v)_{i,j+\frac{1}{2}}^{n} - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n} - p_{i,j}^{n}) + \Delta t \cdot B  \quad \text{(...y momentum eq.)}\\[1.5ex]
+    &(5)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1\ \prime} =  - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n\ \prime} - p_{i,j}^{n\ \prime}) \quad \text{(...SIMPLE-mod-y momentum eq.)}\\[1.5ex]
+    &(6)\ v_{i,j+\frac{1}{2}}^{n} = v_{i,j+\frac{1}{2}}^{n\ \prime} + v_{i,j+\frac{1}{2}}^{n\ *} \quad \left[\text{...y-velocity 校正}\right]\\[1.5ex]
+    &(7)\ D_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1} - (\rho u)_{i-\frac{1}{2},j}^{n+1}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1} - (\rho v)_{i,j-\frac{1}{2}}^{n+1}}{\Delta y} = 0 \quad \text{(...continuity eq.)}\\[1.5ex]
+    &(8)\ d_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1\ *} - (\rho u)_{i-\frac{1}{2},j}^{n+1\ *}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} - (\rho v)_{i,j-\frac{1}{2}}^{n+1\ *}}{\Delta y} = 0 \quad \text{(...pre-continuity eq.)}\\[1.5ex]
+    &(9)\ p_{i,j}^{n} = p_{i,j}^{n\ \prime} + p_{i,j}^{n\ *} \quad\left[\text{...pressure field 校正}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\noindent 上式等價於：\\
+\begin{equation}
+(2)
+\left\{
+\begin{aligned}
+    &(1)\ (\rho u)_{i+\frac{1}{2},j}^{n+1\ *} = (\rho u)_{i+\frac{1}{2},j}^{n} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot A \quad \text{(...SIMPLE-pre-x momentum eq.)}\\[1.5ex]
+    &(2)\ (\rho u)_{i+\frac{1}{2},j}^{n+1\ \prime} = - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ \prime} - p_{i,j}^{n\ \prime})  \quad \text{(...SIMPLE-mod-x momentum eq.)}\\[1.5ex]
+    &(3)\ u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ '} + u_{i+\frac{1}{2},j}^{n *}  \quad \left[\text{...x-velocity 校正}\right]\\[1.5ex]
+    &(4)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} = (\rho v)_{i,j+\frac{1}{2}}^{n} - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot B  \quad \text{(...SIMPLE-pre-y momentum eq.)}\\[1.5ex]
+    &(5)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1\ \prime} =  - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n\ \prime} - p_{i,j}^{n\ \prime}) \quad \text{(...SIMPLE-mod-y momentum eq.)}\\[1.5ex]
+    &(6)\ v_{i,j+\frac{1}{2}}^{n} = v_{i,j+\frac{1}{2}}^{n\ \prime} + v_{i,j+\frac{1}{2}}^{n\ *} \quad \left[\text{...y-velocity 校正}\right]\\[1.5ex]
+    &(7)\ D_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1} - (\rho u)_{i-\frac{1}{2},j}^{n+1}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1} - (\rho v)_{i,j-\frac{1}{2}}^{n+1}}{\Delta y} = 0 \quad \text{(...continuity eq.)}\\[1.5ex]
+    &(8)\ d_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1\ *} - (\rho u)_{i-\frac{1}{2},j}^{n+1\ *}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} - (\rho v)_{i,j-\frac{1}{2}}^{n+1\ *}}{\Delta y} = 0 \quad \text{(...pre-continuity eq.)}\\[1.5ex]
+    &(9)\ p_{i,j}^{n} = p_{i,j}^{n\ \prime} + p_{i,j}^{n\ *} \quad\left[\text{...pressure field 校正}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\noindent 上式等價於：\\
+\begin{equation}
+(3)
+\left\{
+\begin{aligned}
+    &(1)\ (\rho u)_{i+\frac{1}{2},j}^{n+1} = (\rho u)_{i+\frac{1}{2},j}^{n} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n} - p_{i,j}^{n}) + \Delta t \cdot A  \quad \text{(...x momentum eq.)}\\[1.5ex]
+    &(2)\ (\rho u)_{i+\frac{1}{2},j}^{n+1\ *} = (\rho u)_{i+\frac{1}{2},j}^{n} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot A \quad \text{(...SIMPLE-pre-x momentum eq.)}\\[1.5ex]
+    &(3)\ u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ '} + u_{i+\frac{1}{2},j}^{n *}  \quad \left[\text{...x-velocity 校正}\right]\\[1.5ex]
+    &(4)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1} = (\rho v)_{i,j+\frac{1}{2}}^{n} - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n} - p_{i,j}^{n}) + \Delta t \cdot B  \quad \text{(...y momentum eq.)}\\[1.5ex]
+    &(4)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} = (\rho v)_{i,j+\frac{1}{2}}^{n} - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot B  \quad \text{(...SIMPLE-pre-y momentum eq.)}\\[1.5ex]
+    &(7)\ D_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1} - (\rho u)_{i-\frac{1}{2},j}^{n+1}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1} - (\rho v)_{i,j-\frac{1}{2}}^{n+1}}{\Delta y} = 0 \quad \text{(...continuity eq.)}\\[1.5ex]
+    &(8)\ d_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1\ *} - (\rho u)_{i-\frac{1}{2},j}^{n+1\ *}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} - (\rho v)_{i,j-\frac{1}{2}}^{n+1\ *}}{\Delta y} = 0 \quad \text{(...pre-continuity eq.)}\\[1.5ex]
+    &(9)\ p_{i,j}^{n} = p_{i,j}^{n\ \prime} + p_{i,j}^{n\ *} \quad\left[\text{...pressure field 校正}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{方程組六：最終迭代等價式}
+\label{subs:Final.s}
+\noindent 在SIMPLE算法中，主要以下列方程組作為9個變數的統御方程式：\\
+\noindent 其一是方程組四：SIMPLE.$\ $2.$\ $A.$\ $$(1)$\\[1.5ex]
+\begin{equation}
+(1)
+\left\{
+\begin{aligned}
+    &(1)\ (\rho u)_{i+\frac{1}{2},j}^{n+1\ *} = (\rho u)_{i+\frac{1}{2},j}^{n\ *} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot A^{*}  \quad \text{(...pre-x momentum eq.)}\\[1.5ex]
+    &(2)\ (\rho u)_{i+\frac{1}{2},j}^{n+1\ \prime} = - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ \prime} - p_{i,j}^{n\ \prime})  \quad \text{(...SIMPLE-mod-x momentum eq.)}\\[1.5ex]
+    &(3)\ u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ \prime} + u_{i+\frac{1}{2},j}^{n\ *}  \quad \left[\text{...x-velocity 校正}\right]\\[1.5ex]
+    &(4)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} = (\rho v)_{i,j+\frac{1}{2}}^{n\ *} - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot B^{*}  \quad \text{(...y pre-momentum eq.)}\\[1.5ex]
+    &(5)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1\ \prime} =  - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n\ \prime} - p_{i,j}^{n\ \prime}) \quad \text{(...SIMPLE-mod-y momentum eq.)}\\[1.5ex]
+    &(6)\ v_{i,j+\frac{1}{2}}^{n} = v_{i,j+\frac{1}{2}}^{n\ \prime} + v_{i,j+\frac{1}{2}}^{n\ *} \quad \left[\text{...y-velocity 校正}\right]\\[1.5ex]
+    &(7)\ D_{i,j} =\\[1.5ex]
+        &\quad \ \frac{((\rho u)_{i+\frac{1}{2},j}^{n+1\ *} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ \prime} - p_{i,j}^{n\ \prime})) - ((\rho u)_{i-\frac{1}{2}}^{n+1\ *} - \frac{\Delta t}{\Delta x}(p_{i,j}^{n\ \prime} - p_{i-1,j}^{n\ \prime})) }{\Delta x}\\[1.5ex]
+        &+\frac{((\rho v)_{i,j+\frac{1}{2}}^{n+1\ *}- \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n\ \prime} - p_{i,j}^{n\ \prime})) - ((\rho v)_{i,j-\frac{1}{2}}^{n+1\ *}-\frac{\Delta t}{\Delta y}((p)_{i,j}^{n\ \prime} - (p)_{i,j-1}^{n\ \prime}))}{\Delta y}\\[1.5ex]
+        &\quad \text{(...SIMPLE-continuity equation)}\\[1.5ex]
+    &(8)\ d_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1\ *} - (\rho u)_{i-\frac{1}{2},j}^{n+1\ *}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} - (\rho v)_{i,j-\frac{1}{2}}^{n+1\ *}}{\Delta y} = 0 \quad \text{(...pre-continuity eq.)}\\[1.5ex]
+    &(9)\ p_{i,j}^{n} = p_{i,j}^{n\ \prime} + p_{i,j}^{n\ *} \quad\left[\text{...pressure field 校正}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\label{eq:Final.1}
+\end{equation}
+\newpage
+\noindent 其一是方程組五：SIMPLE.$\ $2.$\ $B.$\ $$(2)$\\[1.5ex]
+\begin{equation}
+(2)
+\left\{
+\begin{aligned}
+    &(1)\ (\rho u)_{i+\frac{1}{2},j}^{n+1\ *} = (\rho u)_{i+\frac{1}{2},j}^{n} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot A \quad \text{(...SIMPLE-pre-x momentum eq.)}\\[1.5ex]
+    &(2)\ (\rho u)_{i+\frac{1}{2},j}^{n+1\ \prime} = - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ \prime} - p_{i,j}^{n\ \prime})  \quad \text{(...SIMPLE-mod-x momentum eq.)}\\[1.5ex]
+    &(3)\ u_{i+\frac{1}{2},j}^{n} = u_{i+\frac{1}{2},j}^{n\ '} + u_{i+\frac{1}{2},j}^{n *}  \quad \left[\text{...x-velocity 校正}\right]\\[1.5ex]
+    &(4)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} = (\rho v)_{i,j+\frac{1}{2}}^{n} - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n\ *} - p_{i,j}^{n\ *}) + \Delta t \cdot B  \quad \text{(...SIMPLE-pre-y momentum eq.)}\\[1.5ex]
+    &(5)\ (\rho v)_{i,j+\frac{1}{2}}^{n+1\ \prime} =  - \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n\ \prime} - p_{i,j}^{n\ \prime}) \quad \text{(...SIMPLE-mod-y momentum eq.)}\\[1.5ex]
+    &(6)\ v_{i,j+\frac{1}{2}}^{n} = v_{i,j+\frac{1}{2}}^{n\ \prime} + v_{i,j+\frac{1}{2}}^{n\ *} \quad \left[\text{...y-velocity 校正}\right]\\[1.5ex]
+    &(7)\ D_{i,j} =\\[1.5ex]
+        &\quad \ \frac{((\rho u)_{i+\frac{1}{2},j}^{n+1\ *} - \frac{\Delta t}{\Delta x}(p_{i+1,j}^{n\ \prime} - p_{i,j}^{n\ \prime})) - ((\rho u)_{i-\frac{1}{2}}^{n+1\ *} - \frac{\Delta t}{\Delta x}(p_{i,j}^{n\ \prime} - p_{i-1,j}^{n\ \prime})) }{\Delta x}\\[1.5ex]
+        &+\frac{((\rho v)_{i,j+\frac{1}{2}}^{n+1\ *}- \frac{\Delta t}{\Delta y}(p_{i,j+1}^{n\ \prime} - p_{i,j}^{n\ \prime})) - ((\rho v)_{i,j-\frac{1}{2}}^{n+1\ *}-\frac{\Delta t}{\Delta y}((p)_{i,j}^{n\ \prime} - (p)_{i,j-1}^{n\ \prime}))}{\Delta y}\\[1.5ex]
+        &\quad \text{(...SIMPLE-continuity equation)}\\[1.5ex]
+    &(8)\ d_{i,j} = \frac{(\rho u)_{i+\frac{1}{2},j}^{n+1\ *} - (\rho u)_{i-\frac{1}{2},j}^{n+1\ *}}{\Delta x} + \frac{(\rho v)_{i,j+\frac{1}{2}}^{n+1\ *} - (\rho v)_{i,j-\frac{1}{2}}^{n+1\ *}}{\Delta y} = 0 \quad \text{(...pre-continuity eq.)}\\[1.5ex]
+    &(9)\ p_{i,j}^{n} = p_{i,j}^{n\ \prime} + p_{i,j}^{n\ *} \quad\left[\text{...pressure field 校正}\right]\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+%%參考文獻
+\begin{thebibliography}{9}%開啟參考文獻的編號的指令
+\bibitem{anderson1995}%(1)參考文獻標籤
+Anderson, J. D.%(2)參考文獻作者
+(1995).%(3)參考文獻年份
+\textit{Computational Fluid Dynamics: The Basics with Applications}.%(4)書名
+McGraw-Hill.%(5)出版社
+
+\bibitem{itteration1997}%(1)參考文獻標籤
+John C. Tannehill , D. A. Anderson , Richard H. Pletcher.%(2)作者
+(1997).%(3)年份
+\textit{COMPUTATIONAL FLUID
+MECHANICS AND HEAT TRANSFER, Second Edition}.%(4)書名
+Taylor \& Francis.%(5)出版社
+\end{thebibliography}
+
+\end{document}

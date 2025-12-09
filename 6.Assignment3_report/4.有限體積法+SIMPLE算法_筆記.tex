@@ -1,0 +1,1089 @@
+\documentclass[12pt]{article}
+\usepackage[a4paper,margin=2cm]{geometry} % 明確設定四邊
+\usepackage{fontspec} % 字體設定
+\usepackage{xeCJK}
+\usepackage{setspace} % 設定行距
+\linespread{1.2}
+\usepackage{titling} % 預設標題下移0.6in
+\usepackage{enumitem}
+\usepackage{amsmath} % 數學方程式
+\usepackage{graphicx} %圖片
+\usepackage{float} % 在導言區，讓圖片強制插在原地
+\usepackage{xcolor} %字體加入顏色
+\usepackage{physics} % 物理符號
+\usepackage{wrapfig} % 文字環繞圖
+\usepackage{array} % 表格對齊控制
+\usepackage{caption}
+\usepackage{amsthm}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{etoolbox}
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage{hyperref}
+%1 註記行距設定
+\setlist[enumerate]{itemsep=1.2pt, parsep=0pt, topsep=1pt}
+%2 圖表標題設定
+\captionsetup{
+    labelfont={footnotesize,bf},    % 標籤：小字體+粗體
+    skip=10pt                        % 標題與圖表的間距
+}
+%3 表格間距設定
+\setlength{\tabcolsep}{8pt} % 列間距（增加）
+\renewcommand{\arraystretch}{1.4} % 行間距（增加）
+%4 腳註設定
+\usepackage[bottom,hang]{footmisc} % 腳註置於頁面底部，懸掛縮排
+\setlength{\footnotesep}{10pt} % 腳註之間的間距（增加）
+\setlength{\skip\footins}{12pt plus 5pt minus 2pt} % 正文與腳註之間的間距（增加）
+\setlength{\footnotemargin}{1.5em} % 腳註標號與文字的間距（增加）
+\renewcommand{\footnoterule}{\vspace*{-3pt}\hrule width 0.4\columnwidth height 0.4pt\vspace*{3pt}} % 腳註分隔線
+%5 使用直立字體的定理樣式
+\newtheoremstyle{upright}
+  {6pt}{6pt}  % 定理環境前後間距（增加）
+  {\normalfont}% 使用正常字體，不使用斜體
+  {0pt}{\bfseries}{：}{0.5em}{}
+%6 定理環境定義
+\theoremstyle{upright}
+\newtheorem{definition}{定義}[section]
+\newtheorem{theorem}{定理}[section]
+\newtheorem{lemma}{引理}[section]
+\newtheorem{corollary}{推論}[section]
+\newtheorem{example}{例子}[section]
+% 重新正確定義 remark 環境 - 確保完全靠左對齊
+\makeatletter
+\@ifundefined{c@remark}{}{\renewcommand{\theremark}{}}
+\newenvironment{remark}{%
+  \par\vspace{0.0\baselineskip}%
+  \begingroup% 開始一個組以限制設置的範圍
+  \setlength{\parindent}{0pt}% 設置段落縮進為零
+  \setlength{\leftskip}{0pt}% 設置左邊距為零
+  \noindent\textbf{註記：}\\% 添加標題並強制換行
+  \ignorespaces% 忽略可能的空格
+  \setlist[enumerate]{itemsep=0pt, parsep=0pt, topsep=0.0pt, leftmargin=1.5em}%
+  \setlist[itemize]{itemsep=0pt, parsep=0pt, topsep=0.0pt, leftmargin=1.5em}%
+}{%
+  \endgroup% 結束組
+  \par\vspace{0.5\baselineskip}
+}
+\makeatother
+%7 手動定義中文數字（不含標點符號）
+\newcommand{\chinese}[1]{%
+  \ifcase#1 零\or 一\or 二\or 三\or 四\or 五\or 六\or 七\or 八\or 九\or 十\or
+  十一\or 十二\or 十三\or 十四\or 十五\or 十六\or 十七\or 十八\or 十九\or 二十\fi
+}
+
+%8 重新定義章節編號格式
+\renewcommand{\thesection}{\chinese{\value{section}}}
+\renewcommand{\thesubsection}{\chinese{\value{section}}、\arabic{subsection}}
+\renewcommand{\theequation}{\chinese{\value{section}}.\arabic{equation}}
+\renewcommand{\thesubsubsection}{\chinese{\value{section}}、\arabic{subsection}.\arabic{subsubsection}}
+\renewcommand{\thefigure}{\chinese{\value{section}}.\arabic{figure}}
+\renewcommand{\thedefinition}{\thesection、\arabic{definition}}
+\renewcommand{\thetheorem}{\thesection、\arabic{theorem}}
+\renewcommand{\theexample}{\thesection、\arabic{example}}
+
+% 为不同级别的标题增加编号后的空格
+\setlength{\cftsecnumwidth}{2.5em}  % section 编号宽度
+\setlength{\cftsubsecnumwidth}{3.5em}  % subsection 编号宽度
+\setlength{\cftsubsubsecnumwidth}{4.5em}  % subsubsection 编号宽度
+
+% 添加点线（可选）
+\renewcommand{\cftsubsubsecleader}{\cftdotfill{\cftdotsep}}
+\renewcommand{\cftsubsecleader}{\cftdotfill{\cftdotsep}}
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+%9 讓方程式計數器在每個section重置
+\counterwithin{equation}{section}
+%10 字體設定 - 優化以減少警告
+\setmainfont{Times New Roman}
+\setCJKmainfont[
+    BoldFont={Kaiti TC Bold},
+    ItalicFont={Kaiti TC},
+    BoldItalicFont={Kaiti TC Bold}
+]{Kaiti TC}
+%11 標題設定
+\setlength{\droptitle}{-1in} % 上移標題1in
+\title{3.assignment\_3.3.tex}
+\author{N-S方程在FVM中的一般離散格式}
+\setcounter{section}{0}
+% 12调整 subsection 的间距
+\titlespacing*{\section}
+{0pt}                    % 左边距
+{0.0in}                 % 标题前间距
+{0.0em}                  % 标题后间距
+\titlespacing*{\subsection}
+{0pt}                    % 左边距
+{-0.05in}                % 标题前间距
+{0.0em}                  % 标题后间距
+% 调整 subsubsection 的间距  
+\titlespacing*{\subsubsection}
+{0pt}                    % 左边距
+{0.0in}                 % 标题前间距
+{0.0em}                  % 标题后间距
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+
+\section {動量守恆方程式-Cauchy方程式的積分形式}
+\subsection{從Cauchy方程式到Navier-Stokes方程式}
+\noindent Cauchy方程式作為一般流體運動微分方程，其微分形式為：
+\begin{equation}
+\begin{aligned}
+\rho \frac{D \vec{u}}{Dt} = \rho\vec{g} + \vec{\nabla}\cdot \overleftrightarrow{\tau} \\
+\end{aligned}
+\end{equation}
+\noindent 其中，$\overleftrightarrow{\tau}$為黏滯應力張量場，$\rho(\vec{r},t)$為密度場，$\vec{u}$為速度場。\\
+\noindent 若引入牛頓流體之條件，則牛頓流體的偏應力張量場可表示為：
+\begin{equation}
+\begin{aligned}
+    \overleftrightarrow{D}_{New} = 2\mu\overleftrightarrow{S}_{New} + (u^{\prime} - \frac{2}{3}\mu)(\vec{\nabla}\cdot \vec{u}_{New})\overleftrightarrow{I}
+\end{aligned}
+\end{equation}
+\noindent 若引入不可壓縮流場、牛頓流體相應之流場、Stokes假設之條件，則S牛頓流體相應之流場且U不可壓縮流場的偏應力張量場可表示為：\\
+\begin{equation}\begin{aligned}
+    \overleftrightarrow{D}_{in,New} = 2\mu\overleftrightarrow{S}_{in,New} = \mu\left(\vec{\nabla}\vec{u}_{in,New}  + \left(\vec{\nabla}\vec{u}_{in,New}\right)^{T}\right)
+\end{aligned}\end{equation}
+
+\noindent 若對上式取散度，則有：
+\begin{equation}\begin{aligned} 
+    \vec{\nabla}\cdot \overleftrightarrow{D}_{in,New} =& 2\mu_{in} \vec{\nabla}\cdot \overleftrightarrow{S}_{in,New} \\[1.5ex] =& \mu_{in} \vec{\nabla }\cdot \left(\vec{\nabla}\vec{u}_{in,New}  + \left(\vec{\nabla}\vec{u}_{in,New}\right)^{T}\right)\\[1.5ex] =& \mu_{in} \nabla^2{\vec{u}_{in,New}}\\[1.5ex] 
+\end{aligned}\end{equation}
+\begin{theorem}偏應力張量的散度的微分形式
+\mbox{}\\[0.3ex]% 強制換行    
+若
+\[
+\begin{array}{l}
+    \text{(1)A流場為F牛頓流體相應之流場}\\
+    \text{(2)A流場為H不可壓縮流場}
+\end{array}
+\]
+則
+\begin{equation*}\begin{aligned}
+    &\text{(1)\quad (U(F(A流場)的(偏應力張量場))的(散度))為} \quad \vec{\nabla }\cdot \overleftrightarrow{D_A} = \mu_{A} \vec{\nabla }\cdot \bigl(\vec{\nabla }\vec{u}_{A} + (\vec{\nabla }\vec{u}_{A})^{T}\bigr) = \mu_{A} \nabla^2{\vec{u_{A}}}\\[1.5ex]
+    &\text{(2)\quad (D(F(A流場)的(速度場))的(散度))為}\quad \vec{\nabla }\cdot \vec{u_A} = 0 \\[1.5ex]
+\end{aligned}\end{equation*}
+\end{theorem}
+
+\begin{theorem}Cauchy方程式的微分形式
+\mbox{}\\[0.3ex]% 強制換行    
+若
+\[
+\begin{array}{l}
+    \text{(1)A流場為F牛頓流體相應之流場}\\
+    \text{(2)A流場為H不可壓縮流場}
+\end{array}
+\]
+\noindent 則
+(1)\quad ((F(A流場)的(Cauchy方程))的(微分形式))為：
+\begin{equation}\begin{aligned}
+    \rho\left(\frac{\partial \vec{u}}{\partial t} + (\vec{u}\cdot \vec{\nabla})\vec{u}\right)  &=\vec{\nabla }\cdot \overleftrightarrow{\tau}\\[1.2ex]
+   \xrightarrow{\text{引入牛頓流體之定義1 : 分爲各向同性與非各向同性部分}} &= \vec{\nabla}\cdot(\overleftrightarrow{P} + \overleftrightarrow{D})\\[1.2ex]
+   \xrightarrow{\text{引入牛頓流體之定義2、3 : $\overleftrightarrow{D} = 2\mu(\overleftrightarrow{S}-\frac{1}{3}(\vec{\nabla}\cdot \vec{u})\overleftrightarrow{I})+\mu^{\prime}(\vec{\nabla}\cdot \vec{u})\overleftrightarrow{I}$}} &= \vec{\nabla}\cdot(\overleftrightarrow{P} + 2\mu(\overleftrightarrow{S}-\frac{1}{3}(\vec{\nabla}\cdot \vec{u})\overleftrightarrow{I})\\[2.5ex] 
+   &+\mu^{\prime}(\vec{\nabla}\cdot \vec{u})\overleftrightarrow{I})\\[1.2ex]
+   \xrightarrow{\text{引入不可壓縮流場之條件 : $\vec{\nabla }\cdot \vec{u} = 0$}} &= \vec{\nabla}\cdot(\overleftrightarrow{P} + 2\mu\overleftrightarrow{S})\\[2.5ex]
+   &= \vec{\nabla }\cdot \overleftrightarrow{P} + \mu \vec{\nabla}\cdot \left(\vec{\nabla}\vec{u}\right) + \mu\vec{\nabla }\left(\vec{\nabla}\cdot \vec{u}\right) \\[1.2ex]
+   \xrightarrow{\text{引入不可壓縮流場之條件 : $\vec{\nabla }\cdot \vec{u} = 0$}} &= -p\overleftrightarrow{I} + \mu\nabla^2{\vec{u}}
+\end{aligned}\end{equation} 
+
+(2)\quad (D(F(A流場)的(速度場))的(散度))為
+\begin{equation}\quad \vec{\nabla }\cdot \vec{u_A} = 0 \end{equation} 
+\end{theorem}
+
+\subsection{Cauchy方程式的積分形式}
+\vspace{0.4ex}
+從微分形式取Gauss-Divergence Theorem，可得Cauchy方程式的積分形式，在牛頓流體、不可壓縮流場下，Cauchy方程式為Navier-Stokes 方程式：
+\subsubsection{Cauchy方程式的積分形式的推演}
+\noindent 不可壓縮流場、牛頓流體相應之流場的Cauchy方程式的積分形式：
+\begin{equation}\begin{aligned}
+    &\oint_{\partial \Omega} \vec{da}\cdot \rho \vec{u} \otimes \vec{u} = \oint_{\partial \Omega} \vec{da}\cdot \left(\overleftrightarrow{P} + \overleftrightarrow{D}\right)\\[1.5ex]
+    =&\oint _{\partial \Omega} \vec{da}\cdot (-p)\overleftrightarrow{I} + \mu\oint_{\partial \Omega} \vec{da} \cdot \left(\vec{\nabla}\vec{u} + \vec{\nabla }\vec{u}^{T}\right)\\[1.5ex]
+    =& \oint_{\partial \Omega} \vec{da}\cdot (-p)\overleftrightarrow{I}  + \mu\oint_{\partial \Omega}  \vec{da} \cdot  \vec{\nabla }\vec{u} + \mu \int_{\Omega} d^3r \vec{\nabla }\left(\vec{\nabla}\cdot \vec{u}\right)\\[1.5ex]
+    =& \oint_{\partial \Omega} \vec{da}\cdot (-p)\overleftrightarrow{I}  + \mu\oint_{\partial \Omega}  \vec{da} \cdot  \vec{\nabla }\vec{u} \\[1.5ex]
+    &\text{其中，}\overleftrightarrow{D} = 2\mu\overleftrightarrow{S} = \mu\left(\vec{\nabla }\vec{u} + \vec{\nabla }\vec{u}^{T} \right) \text{且因不可壓縮流場，令} \vec{\nabla }\cdot \vec{u} = 0 
+\end{aligned}\end{equation}
+\noindent 在不可壓縮流場且牛頓流體相應之流場的偏應力張量場的封閉曲面面積分中，有：
+\begin{theorem} 偏應力張量的散度的積分形式
+\noindent 若
+\[
+\begin{array}{l}
+    \text{(1)A流場為F牛頓流體相應之流場}\\
+    \text{(2)A流場為H不可壓縮流場}
+\end{array}
+\]
+\noindent 則
+\noindent
+(1)\quad(U'(F(A流場)的(偏應力張量場))的(封閉曲面面積分))為
+\begin{equation}\begin{aligned}
+    &\oint_{\partial \Omega} \vec{da}\cdot \overleftrightarrow{D_A} = \oint_{\partial \Omega} \vec{da}\cdot \mu (\vec{\nabla}\vec{u_A} + \vec{\nabla}\vec{u_A}^{T})\\[1.5ex]
+    =&\mu \oint_{\partial \Omega} da_{j}\left(\frac{\partial u_{i}}{\partial x_{j}}\right)\vec{e_{i}}  + \mu\oint_{\partial \Omega }da_{i}\left(\frac{\partial u_{i}}{\partial x_{j}}\right)\vec{e_{j}} 
+    \\[1.5ex]\xrightarrow{\text{利用Gauss-Divergence Theorem }}\quad =& \mu \int_{\Omega} d^3r \frac{\partial }{\partial x_{j}}\left(\frac{\partial u_{i}}{\partial x_{j}}\right)\vec{e_{i}} + \mu \int_{\Omega} d^3r \frac{\partial }{\partial x_{i}} \left(\frac{\partial u_{i}}{\partial x_{j}}\right)\vec{e_{j}} \\[1.5ex] 
+    =& \mu \int_{\Omega} d^3r \frac{\partial }{\partial x_{j}}\left(\frac{\partial u_{i}}{\partial x_{j}}\right)\vec{e_{i}} + \mu \int_{\Omega} d^3r \frac{\partial }{\partial x_{j}} \left(\frac{\partial u_{i}}{\partial x_{i}}\right)\vec{e_{j}} \\[1.5ex] 
+     =& \mu \int_{\Omega} d^3r \nabla^2{\vec{u}} + \mu \int_{\omega} d^3r \vec{\nabla } \left(\vec{\nabla }\cdot \vec{u}\right) \\[1.5ex]
+    \xrightarrow{\text{但是我們需要用到的是面積分形式}}  \quad  =&\mu  \oint_{\partial \Omega} \vec{da} \cdot \left(\vec{\nabla}\vec{u}\right)
+\end{aligned}\end{equation}
+(2)\quad (D'(F(A流場)的(速度場))的(封閉曲面面積分))為
+\begin{equation}\begin{aligned}
+    &\oint_{\partial \Omega} \vec{da}\cdot \vec{u_{A}} = 0 \\[1.5ex] 
+\end{aligned}\end{equation} 
+\end{theorem}
+ 
+\begin{theorem} Cauchy方程式的積分形式
+\mbox{}\\[0.3ex]
+\noindent 若
+\[
+\begin{array}{l}
+    \text{(1)A流場為F牛頓流體相應之流場}\\
+    \text{(2)A流場為H不可壓縮流場}
+\end{array}
+\]
+\noindent 則
+(1)\quad (D(F(A流場)的(Cauchy方程))的(積分形式))為：
+\begin{equation}\label{eq:cauchyin}\begin{aligned}
+    \oint_{\partial \Omega}\vec{da} \cdot\left(\rho_{A} \vec{u_{A}}\otimes \vec{u_{A}}\right) = \oint_{\partial \Omega}\vec{da}\cdot (-p_{A})\overleftrightarrow{I} + \mu \oint_{\partial \Omega} \vec{da} \cdot \left( \vec{\nabla }\vec{u_{A}}\right)
+\end{aligned}\end{equation}
+\quad \ \ (2)\quad(E(F(A流場)的(速度場))的(封閉曲面面積分))為：
+\begin{equation}\begin{aligned}
+    \oint_{\partial \Omega} \vec{da} \cdot \vec{u_{A}} = 0 
+\end{aligned}\end{equation}
+\end{theorem}
+
+\subsubsection {Cauchy方程式的積分形式在二維平面空間中的展開}
+\noindent 利用式\eqref{eq:cauchyin}，在二維平面空間中展開Cauchy方程式的積分形式，有：
+\begin{theorem} Navier-Stokes 方程組在二維平面空間中的展開
+\mbox{}\\[0.3ex]
+\noindent 若 \quad A流場為 F牛頓流體相應之流場且H不可壓縮流場，\\[1.5ex ]
+則\quad  (Y(D(F(A流場)的(Cauchy方程))的(積分形式))的(二維平面展開)) : 
+\begin{equation}\begin{aligned}
+    &\oint_{\partial \Omega} dy \;\left(\rho\, u\,( u\,\vec{e}_x + v\,\vec{e}_y )\right) + \oint_{\partial \Omega} dx \;\left(\rho\, v\,( u\,\vec{e}_x + v\,\vec{e}_y )\right) \\[1.5ex]
+    =& \oint_{\partial \Omega} (dy\,\vec{e}_x + dx\,\vec{e}_y)\,(-p) 
+    + \oint_{\partial \Omega } dy \;\mu\frac{\partial }{\partial x} \left(u\,\vec{e}_x + v\,\vec{e}_y \right) + \oint_{\partial \Omega } dx \;\mu\frac{\partial }{\partial y} \left(u\,\vec{e}_x + v\,\vec{e}_y \right) \\[1.5ex]
+\end{aligned}\end{equation} 
+\end{theorem}
+\noindent 若將上式按照 $\vec{e}_x$與$\vec{e}_y$分量分別列出，則有(令特徵速度$U = 1$，則有:$\frac{\mu}{\rho} = \frac{1}{R_{e}} $ ，其中$\rho = c$)：
+\begin{equation}\left\{\begin{aligned}
+    \text{x分量：}
+    &\oint_{\partial \Omega} \left( u^2\,dy + u v\,dx \right) \\[1.5ex]
+    =& \oint_{\partial \Omega} dy \frac{(-p )}{\rho }  + \frac{1}{R_{e}}\oint_{\partial \Omega } \left(dy\frac{\partial u}{\partial x} + dx\frac{\partial u}{\partial y} \right)\\[1.5ex]
+    \text{y分量：}
+    &\oint_{\partial \Omega} \left( u v\,dy + v^2\,dx \right) \\[1.5ex]
+    =& \oint_{\partial \Omega} dx\frac{(-p )}{\rho }  + \frac{1}{R_{e}} \oint_{\partial \Omega } \left(dy\frac{\partial v}{\partial x} + dx\frac{\partial v}{\partial y} \right)\\[1.5ex]
+\end{aligned}\right.\end{equation}
+
+\section{方程式的離散化}
+\subsection{交錯網格技術}
+\label{subsec:staggered grid}
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{1.png}
+        \\[0.5ex]
+        {\footnotesize (a) scalar grid point 與 x,y-velocity grid point 的儲存點}
+    \end{minipage}\hfill
+    \begin{minipage}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{2.png}
+        \\[0.5ex]
+        {\footnotesize (b) 主計算點與速度計算點的control volume}
+    \end{minipage}
+    \caption{交錯網格技術示意圖（左：1.png，右：2.png）}
+    \label{fig:staggered-grid}
+\end{figure}
+
+在求解Navier-Stokes方程組時，因為需要配何求解x-Velocity,y-Velocity,以及壓力場，或者各個純量場，發現對於離散的方程組若使用三套網格，(三套儲存點)，可以精準的使用以及賦值，而不需要再一次的內插，在主計算點上取值。
+\noindent 下面列出，一般離散格式下的的連續方程式以及x方向動量方程，y方向動量方程式。
+\footnote{對於三套網格系統，分別為主計算點(primary grid point)、x方向速度場副計算點(x-velocity vice grid point)、y方向速度場副計算點(y-velocity vice grid point)，各自建立離散化方程時，統一以P點代表劑算本點，E\ ,\ W\ ,\ N\ ,\ S分別代表東、西、北、南側相鄰計算點。}
+\subsubsection{變數的儲存點以及積分方程式的控制體積}
+\textbf{（一）三套網格系統：由左$\rightarrow$右，被定義為：}
+\begin{enumerate}
+    \item 主計算點(primary grid point)：純量場(Scalar field)以及壓力場(Pressure field)的儲存點
+    \item x方向速度場副計算點(x-velocity vice  point)：x方向速度場(x-velocity field)的儲存點
+    \item y方向速度場副計算點(y-velocity vice  point)：y方向速度場(y-velocity field)的儲存點
+\end{enumerate}
+\textbf{（二）積分方程式的控制體積的中心點(Control volume center of the integral equations)由左$\rightarrow$右，令為：}
+\begin{enumerate}
+    \item 連續積分方程式的控制體積的中心點：主計算點
+    \item x方向動量積分方程式的控制體積的中心點：x方向速度場副計算點
+    \item y方向動量積分方程式的控制體積的中心點：y方向速度場副計算點
+\end{enumerate}
+\noindent 如上的控制體積中心點的選取才有意義，這樣才可以利用該變數的儲存點上的取值進行內插近似。
+\subsubsection {連續積分方程式的一般離散格式}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{9.png}
+    \caption{\footnotesize 連續方程式的對流部份係數}
+    \label{fig:連續方程式的對流部份係數}
+\end{figure}
+\noindent (R(K(G(D二維穩態不可壓縮流場)的(連續積分方程式))的(控制體積))的(中心點))為：
+\begin{enumerate}
+    \item 控制體積中心點：主計算點(primary grid point)
+    \item 控制體積中心點做座標：$(I,J)$
+    \item 注意事項：在穩態不可壓縮流場中，密度場為時間靜場且為空間均勻場。故下式離散格式中，將密度場同時除掉，為$\oint_{\partial \Omega} \vec{da} \cdot \vec{u} = 0$ 的離散格式。
+\end{enumerate}
+\begin{definition} \text{符號：$F_{w}^{p}\ .\ F_{e}^{p} \ ,\ F_{n}^{p} \ ,\ F_{s}^{p}$ }\end{definition}
+(R(P(G(S二維穩態不可壓縮流場)的(連續積分方程式))的(一般離散格式))的(對流部分係數))：$F_{w}^{p}\ .\ F_{e}^{p} \ ,\ F_{n}^{p} \ ,\ F_{s}^{p}  $
+\begin{equation}\left\{\begin{aligned}
+F_{w}^{p} &=  A_{w}\ ,\ u_{w} = A_{w}\ ,\ u_{i,J} = A_{w}\ ,\ u_{P}\\[1.5ex]
+F_{e}^{p} &=  A_{e}\ ,\ u_{e} = A_{e}\ ,\ u_{i+1,J} = A_{w}\ ,\ u_{E}\\[1.5ex]
+F_{n}^{p} &=  A_{s}\ ,\ v_{s} = A_{s}\ ,\ v_{I,j} = A_{s}\ ,\ v_{P}\\[1.5ex]
+F_{s}^{p} &=  A_{n}\ ,\ v_{n} = A_{n}\ ,\ v_{I,j+1 }= A_{n}\ ,\ v_{N}\\[1.5ex]
+\end{aligned}\right.\end{equation}
+\textbf{連續積分方程式的一般離散格式 (General discrete of the integral continuity equation)}\\
+\noindent (D(G(D二維穩態不可壓縮流場)的(連續積分方程式))的(一般離散格式))為：
+\begin{equation}\begin{aligned}
+    &F_{e}^{p} - F_{w}^{p}  + F_{n}^{p}  - F_{s}^{p}  = 0.0  \\
+    &\text{the equation is valied on point (I,J) , primary grid point}
+\end{aligned}\end{equation}
+\subsubsection{x分量動量積分方程式的一般離散格式}
+所謂上述標題之「一般」，指的是不分格式精度，可以依照各個格式精度\footnote{常見的離散格式包括：QUICK (Quadratic Upstream Interpolation for Convective Kinematics)、C-D (Central Difference)、TVD (Total Variation Diminishing) 等格式。}填入下述之一般離散格式，形成各階精度之離散格式。
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth]{8.png}
+    \caption{\footnotesize x-momentum equation 的對流部份係數}
+    \label{fig:x-momentum equation 的對流部份係數}
+\end{figure}
+\noindent 二維穩態不可壓縮流場的x方向動量積分方程式 ：
+\begin{equation}\begin{aligned}
+    \oint_{\partial \Omega} dyu\cdot u + dxv \cdot u  = \int_{\Omega} dr^{3} \left(- \frac{1}{\rho}\frac{\partial p}{\partial x}\right) + \frac{1}{R_{e}}\oint_{\partial \Omega} dy \frac{\partial u}{\partial x} +dx \frac{\partial u}{\partial y}
+\end{aligned}\end{equation}
+
+\noindent (E(N(S(D二維穩態不可壓縮流場)的(x方項動量積分方程式))的(控制體積))的(中心點))為：
+\begin{enumerate}
+    \item 控制體積中心點： x方向速度場副計算點(x-velocity vice grid point)
+    \item 控制體積中心點做座標：$(i,J)$
+\end{enumerate}
+\begin{definition} 
+符號：$F_{w}^{u}\ ,\ F_{e}^{u} \ ,\ F_{n}^{u} \ ,\ F_{s}^{u}\ ,\ D_{w}\ ,\ D_{e} \ ,\ D_{n} \ ,\ D_{s} $
+\end{definition}
+\textbf{註記：}\\
+以下的E,W 兩個點分別為相對於「x方向速度副場副計算點」($\color{blue}{\rightarrow}$)的東側、西側計算點，因此，個別取值在點(i+1,J)、(i-1,J)上。\\
+\noindent (R(P(G(S二維穩態不可壓縮流場)的(x方向動量積分方程式))的(一般離散格式))的(對流部分係數))：$F_{w}^{u}\ .\ F_{e}^{u} \ ,\ F_{n}^{u} \ ,\ F_{s}^{u} $\\
+\noindent (J(P(G(S二維穩態不可壓縮流場)的(x方向動量積分方程式))的(一般離散格式))的(擴散部分係數))：$D_{w}\ .\ D_{e} \ ,\ D_{n} \ ,\ D_{s}$\\
+
+\begin{minipage}[t]{0.55\textwidth}
+\textbf{對流部分係數：}
+\begin{equation}\left\{\begin{aligned}
+F_{w}^{u} &=  A_{w}u_{w} = A_{w}\frac{u_{W}+u_{P}}{2} \\[1.5ex]
+F_{e}^{u} &=  A_{e}u_{e} = A_{e}\frac{u_{P}+u_{E}}{2} \\[1.5ex]
+F_{n}^{u} &=  A_{n}v_{n} = A_{n}\frac{v_{I,j+1}+v_{I-1,j+1}}{2}\\[1.5ex]
+F_{s}^{u} &=  A_{s}v_{s} = A_{s}\frac{v_{I,j}+v_{I-1,j}}{2}\\[1.5ex]
+\end{aligned}\right.\end{equation}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.39\textwidth}
+\textbf{擴散部分係數：}
+\begin{equation}\left\{\begin{aligned}
+D_{w} &= \frac{A_{w}}{\delta x_{w}R_{e}}  \\[0.7ex]
+D_{e} &= \frac{A_{e}}{\delta x_{e}R_{e}}  \\[0.7ex]
+D_{n} &= \frac{A_{n}}{\delta y_{n}R_{e}}  \\[0.7ex]
+D_{s} &= \frac{A_{s}}{\delta y_{s}R_{e}}  \\[0.7ex]
+\end{aligned}\right.\end{equation}
+\end{minipage}
+\\[1.5ex]
+\noindent \textbf{x方向動量積分方程式的一般離散格式 (General discrete of the integral x-momentum equation)}
+\noindent (S(J(D二維穩態不可壓縮流場)的(x方向動量積分方程式))的(一般離散格式))為：
+\begin{equation}\begin{split}
+    &F_{e}^{u}u_{e} - F_{w}^{u}u_{w} + F_{n}^{u}u_{n} - F_{s}^{s}u_{s} = \frac{1}{\rho} \frac{-\left(p_{I,J} - p_{I-1,J}\right)}{\delta x} \delta x\delta y \\
+    -& u_{P}\left(D_{w}+D_{e}+D_{s}+D_{n}\right) +  u_{W}\left(D_{w}\right) + u_{E}\left(u_{E}\right)+ u_{S}\left(D_{s}\right)+ u_{N}\left(D_{n}\right) 
+\end{split}\end{equation}
+\noindent 其中，該控制體積的邊界中心點上的x方向速度場可以依據不同格式精度，使用不同的差值方法，予以賦值，讓離散方程產生相應的離散格式。
+\begin{example}
+    \text{QUICK離散格式} \\
+    \text{x分量速度場在東邊界中心點的空間三階精度QUICK離散取值}
+    \begin{equation*}
+        u_{e} = \left(0\right)u_{WW} + \left(\alpha_{e}\frac{-1}{8}\right)u_{W} + \left((1-\alpha_{e})\frac{3}{8}+\alpha_{e}\frac{6}{8}\right)u_{P} + \left((1-\alpha_{e})\frac{6}{8}+\alpha_{e}\frac{3}{8}\right)u_{E} + \left((1-\alpha_{e})\frac{-1}{8}\right)u_{EE}
+    \end{equation*}
+    \text{各個邊界中心點的空間三階精度QUICK離散取值如下圖表示：(下圖的$\phi$為：x方向速度場$u$)}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.7\textwidth]{10.png}
+        \caption{\footnotesize x方向(或y分量)速度場在各個邊界中心點的空間三階精度QUICK離散取值}
+        \label{fig:x方向(或y分量)速度場在各個邊界中心點的空間三階精度QUICK離散取值}
+    \end{figure}
+\end{example}
+\begin{example}
+    \text{TVD離散格式} ： \\
+    \text{x分量速度場在東邊界中心點的空間二階精度TVD離散取值}
+    \begin{equation*}\begin{split}
+        u_{e} =& \left(0\right)u_{WW} + \left(\alpha_{e}UU(r_{e})\right)u_{W} \\
+        +& \left((1-\alpha_{e})D(r_{e})+\alpha_{e}U(r_{e})\right)u_{P} + \left((1-\alpha_{e})U(r_{e})+\alpha_{e}D(r_{e})\right)u_{E} + \left((1-\alpha_{e})UU(r_{e})\right)u_{EE}
+    \end{split}\end{equation*}
+    \text{各個邊界中心點的空間二階精度TVD離散取值如下圖表示：(下圖的$\phi$為：x方向速度場$u$)}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.7\textwidth]{11.png}
+        \caption{\footnotesize x方向(或y分量)速度場在各個邊界中心點的空間二階精度TVD離散取值}
+        \label{fig:x方向(或y分量)速度場在各個邊界中心點的空間二階精度TVD離散取值}
+    \end{figure}
+\end{example}
+\subsubsection{y分量動量積分方程式的一般離散格式}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.55\textwidth]{7.png}
+    \caption{\footnotesize discrete y-momentum equation 的對流部份係數}
+    \label{fig:discrete y-momentum equation 的對流部份係數}
+\end{figure}
+\vspace{-0.5ex}
+\noindent 二維穩態不可壓縮流場的y方向動量積分方程式 ：
+\begin{equation}\begin{aligned}
+    \oint_{\partial \Omega} dyu\cdot v + dxv \cdot v  = \int_{\Omega} dr^{3} \left(-\frac{1}{\rho}\frac{\partial p}{\partial y}\right) + \frac{1}{R_{e}}\oint_{\partial \Omega} dy \frac{\partial v}{\partial x} +dx \frac{\partial v}{\partial y}
+\end{aligned}\end{equation}
+\noindent (E'(N'(S'(D二維穩態不可壓縮流場)的(y方項動量積分方程式))的(控制體積))的(中心點))為：
+\begin{enumerate}
+    \item 控制體積中心點： y方向速度場副計算點(x-velocity vice grid point)
+    \item 控制體積中心點做座標：$(I,j)$
+\end{enumerate}
+\begin{definition} 符號：$F_{w}^{v}\ ,\ F_{e}^{v} \ ,\ F_{n}^{v} \ ,\ F_{s}^{v}\ ,\ D_{w}\ ,\ D_{e} \ ,\ D_{n} \ ,\ D_{s} $
+\end{definition}
+
+\begin{minipage}[t]{0.55\textwidth}
+\textbf{對流部分係數：}
+\begin{equation}\left\{\begin{aligned}
+F_{w}^{v} &=  A_{w}u_{w} = A_{w}\frac{u_{i+1,J}+u_{i+1,J-1}}{2} \\[1.3ex]
+F_{e}^{v} &=  A_{e}u_{e} = A_{e}\frac{u_{i,J}+u_{i,J-1}}{2} \\[1.3ex]
+F_{n}^{v} &=  A_{n}v_{n} = A_{n}\frac{v_{N}+v_{P}}{2}\\[1.3ex]
+F_{s}^{v} &=  A_{s}v_{s} = A_{s}\frac{v_{P}+v_{S}}{2}\\[1.3ex]
+\end{aligned}\right.\end{equation}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.39\textwidth}
+\textbf{擴散部分係數：}
+\begin{equation}\left\{\begin{aligned}
+D_{w} &= \frac{A_{w}}{\delta x_{w}R_{e}}  \\[0.5ex]
+D_{e} &= \frac{A_{e}}{\delta x_{e}R_{e}}  \\[0.5ex]
+D_{n} &= \frac{A_{n}}{\delta y_{n}R_{e}}  \\[0.5ex]
+D_{s} &= \frac{A_{s}}{\delta y_{s}R_{e}}  \\[0.5ex]
+\end{aligned}\right.\end{equation}
+\end{minipage}
+
+\begin{remark}
+(1)\quad 儲存點為$(I,j)$，因此y方向速度場的取值總是應用到$(I-1,j)$與$(I,j)$兩個點，作為v方向速度場有取值的點。\\
+(2)\quad 擴散部分係數(此部分與x方向動量積分方程的一般離散格式的擴散部分係數相同)。\\
+\end{remark}
+\noindent \textbf{y分量動量積分方程式的一般離散格式 (General discrete of the integral y-momentum equation)}
+\noindent (Z(G(D二維穩態不可壓縮流場)的(y分量動量積分方程式))的(一般離散格式))為：
+\begin{equation}\begin{split}
+    &F_{e}^{v}v_{e} - F_{w}^{v}v_{w} + F_{n}^{v}v_{n} - F_{s}^{v}v_{s} = \frac{1}{\rho}\frac{-\left(p_{I,J} - p_{I,J-1}\right)}{\delta y} \delta x\delta y \\
+    -& v_{P}\left(D_{w}+D_{e}+D_{s}+D_{n}\right) +  v_{W}\left(D_{w}\right) + v_{E}\left(v_{E}\right)+ v_{S}\left(D_{s}\right)+ v_{N}\left(D_{n}\right) 
+\end{split}\end{equation}
+\noindent 其中，y分量速度場在該控制體積的邊界中心點的取值，可以依據不同精度格式給予賦值，下面列舉兩種格式的離散取值，各自產生QUICK離散格式之方程與TVD系列之離散格式。
+\begin{example}
+    \text{QUICK離散格式} \\
+    \text{y分量速度場在東邊界中心點的空間三階精度QUICK離散取值}
+    \begin{equation*}
+        v_{e} = \left(0\right)v_{WW} + \left(\alpha_{e}\frac{-1}{8}\right)v_{W} + \left((1-\alpha_{e})\frac{3}{8}+\alpha_{e}\frac{6}{8}\right)v_{P} + \left((1-\alpha_{e})\frac{6}{8}+\alpha_{e}\frac{3}{8}\right)v_{E} + \left((1-\alpha_{e})\frac{-1}{8}\right)v_{EE}\\[1.5ex]
+    \end{equation*}
+    \text{各個邊界中心點上的y分量速度場$v_{w}\ ,\ v_{e}\ ,\ v_{n}\ ,\ v_{s}\ $,依然可依據圖\ref{fig:x方向(或y分量)速度場在各個邊界中心點的空間三階精度QUICK離散取值}，將圖中的$\phi$替換成$v$，}\\
+    \text{即可得到各個邊界中心點上的y分量速度場的空間三階精度QUICK離散取值。}
+\end{example}
+\begin{example}
+    \text{TVD離散格式} ： \\
+    \text{y分量速度場在東邊界中心點的空間二階精度TVD離散取值}
+    \begin{equation*}\begin{split}
+        v_{e} =& \left(0\right)v_{WW} + \left(\alpha_{e}UU(r_{e})\right)v_{W} \\
+        +& \left((1-\alpha_{e})D(r_{e})+\alpha_{e}U(r_{e})\right)v_{P} + \left((1-\alpha_{e})U(r_{e})+\alpha_{e}D(r_{e})\right)v_{E} + \left((1-\alpha_{e})UU(r_{e})\right)v_{EE}
+    \end{split}\end{equation*}
+    \text{各個邊界中心點上的y分量速度場$v_{w}\ ,\ v_{e}\ ,\ v_{n}\ ,\ v_{s}\ $,依然可依據圖\ref{fig:x方向(或y分量)速度場在各個邊界中心點的空間二階精度TVD離散取值}，將圖中的$\phi$替換成$v$，}\\ 
+    \text{即可得到各個邊界中心點上的y分量速度場的空間二階精度TVD離散取值。}
+\end{example}
+\begin{remark}
+    上述例子中，所謂的點$WW\ ,\ W\ ,\ P\ ,\ E\ ,\ EE$，均為相對於y方向速度場副計算點($\color{red}{\uparrow}$)的西側、東側計算點，因此，個別取值在點$(I-2,j)$、$(I-1,j)$、$(I+1,j)$、$(I+2,j)$，南北方向同理。
+\end{remark}
+\subsection {高階精度離散格式}
+\begin{remark}
+    對於離散方程(連續方程式的離散方程，或者是動量方程式的離散方程)的對流部分係數(e.g., $F_{w}^{p}\ ,\ F_{w}^{u}\ ,\ F_{w}^{v}$ etc.)所用到的計算點的邊界中心點的速度場，都是取為儲存點上的速度場的算術平均，或者是直接在該儲存點(當邊界中心點剛好是該變數的儲存點時，)上賦值。
+\end{remark}
+\subsubsection {連續積分方程式的一般離散格式}
+\noindent \textbf{(P(C(S二維穩態不可壓縮流場)的(連續積分方程式))的(一般離散格式))：}
+\begin{equation}\begin{split}
+    &F_{e}^{p} - F_{w}^{p} + F_{n}^{p} - F_{s}^{p} = 0 \\[1.3ex]
+    \text{其中，}\quad
+    &F_{w}^{p} = A_{w}u_{i,J}  = A_{w}u_{P}\\[1.3ex]
+    &F_{e}^{p} = A_{e}u_{i+1,J}  = A_{e}u_{E} \\[1.3ex]
+    &F_{n}^{p} = A_{n}v_{I,j+1}  = A_{n}v_{N} \\[1.3ex]
+    &F_{s}^{p} = A_{s}v_{I,j}  = A_{s}v_{P}
+\end{split}\end{equation}
+\noindent 如章節\ref{subsec:staggered grid}所述，連續積分方程式的一般離散格式的{\color{red}控制體積中心點}為主計算點(primary grid point)，且因為在交錯網格中，速度場x分量定義在$(i,J)$，y分量定義在$v_{I,j}$，所以在連續積分方程的離散格式中，$u_{e}$取值為$u_{E}$, $u_{w}$取值為$u_{P}$，$v_{n}$取值為$v_{N}$，$v_{s}$取值為$v_{P}$。
+\subsubsection {x方向動量積分方程式的高階精度離散格式}
+\noindent \textbf{(z(X(S二維穩態不可壓縮流場)的(x方向動量積分方程式))的(高階精度離散格式))：}
+\begin{equation}\label{eq:general x-mom}\begin{split}
+     a_{P}u_{P} 
+    +&a_{EE}u_{EE} + a_{E}u_{E} + a_{W}u_{W} + a_{WW}u_{WW}\\[1.3ex]
+    +&a_{NN}u_{NN} + a_{N}u_{N} + a_{S}u_{S} + a_{SS}u_{SS}\\[1.3ex]
+    =&\frac{1}{\rho}\frac{-\left(p_{P} - p_{w}\right)}{\delta x} \delta x \delta y
+\end{split}\end{equation}
+\noindent 討論：
+\noindent 若方程式\eqref{eq:general x-mom}取為\textbf{空間三階精度QUICK離散格式}，則：
+\begin{equation}\left\{\begin{aligned}
+&a_{P} =-(a_{EE}+a_{E}+a_{W}+a_{WW}+a_{NN}+a_{N}+a_{S}+a_{SS})+F_{e}^{u}-F_{w}^{u}+F_{n}^{u}-F_{s}^{u} \\[1.5ex]
+&a_{WW} = 0 + (\alpha_{w}\frac{-1}{8})(-F_{w}^{u}) \\[1.5ex]
+&a_{W} = (\alpha_{e}\frac{-1}{8})F_{e}^{u} + ((1-\alpha_{w})\frac{3}{8} +\alpha_{w}\frac{6}{8})(-F_{w}^{u}) -D_{e}\\[1.5ex]
+&a_{E} = ((1-\alpha_{e})\frac{6}{8} +\alpha_{e}\frac{3}{8}) F_{e}^{u} + ((1-\alpha_{w})\frac{-1}{8})(-F_{w}^{u}) -D_{w}\\[1.5ex]
+&a_{EE} = ((1-\alpha_{e})\frac{-1}{8})F_{e}^{u} + 0\\[1.5ex]
+&a_{SS} = 0 + (\alpha_{s}\frac{-1}{8})(-F_{s}^{u})\\[1.5ex] 
+&a_{S} = (\alpha_{n}\frac{-1}{8})F_{n}^{u} + ((1-\alpha_{s})\frac{3}{8} +\alpha_{s}\frac{6}{8})(-F_{s}^{u}) -D_{n}\\[1.5ex]
+&a_{N} = ((1-\alpha_{n})\frac{6}{8} +\alpha_{n}\frac{3}{8})F_{n}^{u} +  ((1-\alpha_{s})\frac{-1}{8})(-F_{s}^{u}) -D_{s}\\[1.5ex]
+&a_{NN} = ((1-\alpha_{n})\frac{-1}{8})F_{n}^{u} + 0 \\
+\end{aligned}\right.\end{equation}
+\noindent 如下圖所示：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.1\textwidth]{12.png}
+    \caption{\footnotesize x分量動量方程式的空間三階精度QUICK離散格式}
+    \label{fig:x分量動量方程式的空間三階精度QUICK離散格式}
+\end{figure}
+\noindent 若方程式\eqref{eq:general x-mom}取為\textbf{空間二階精度TVD-MUSCL離散格式}，則：
+\begin{equation}\left\{\begin{aligned}
+&a_{P} =-(a_{EE}+a_{E}+a_{W}+a_{WW}+a_{NN}+a_{N}+a_{S}+a_{SS})\\[1.5ex]
+&\quad +\left(D(r_{w})+U(r_{w})+UU(r_{w})\right)(-F_{w}^{u})\\[1.5ex]
+&\quad +\left(D(r_{e})+U(r_{e})+UU(r_{e})\right)F_{e}^{u}\\[1.5ex]
+&\quad +\left(D(r_{s})+U(r_{s})+UU(r_{s})\right)(-F_{s}^{u})\\[1.5ex]
+&\quad +\left(D(r_{n})+U(r_{n})+UU(r_{n})\right)F_{n}^{u}\\[1.5ex]
+&a_{WW} = 0 + (\alpha_{w}UU(r_{w}))(-F_{w}^{u}) \\[1.5ex]
+&a_{W} = (\alpha_{e}UU(r_{e}))F_{e}^{u} + ((1-\alpha_{w})D(r_{w})+\alpha_{w}U(r_{w}))(-F_{w}^{u}) - D_{w}\\[1.5ex]
+&a_{E} = ((1-\alpha_{e})U(r_{e})+\alpha_{e}D(r_{e}))F_{e}^{u} + ((1-\alpha_{w})UU(r_{w}))(-F_{w}^{u}) - D_{e}\\[1.5ex]
+&a_{EE} = ((1-\alpha_{e})UU(r_{e}))F_{e}^{u} + 0 \\[1.5ex]
+&a_{SS} = 0 + (\alpha_{s}UU(r_{s}))(-F_{s}^{u})\\[1.5ex]
+&a_{S} = (\alpha_{n}UU(r_{n}))F_{n}^{u} + ((1-\alpha_{s})D(r_{s})+\alpha_{s}U(r_{s}))(-F_{s}^{u}) - D_{s}\\[1.5ex]
+&a_{N} = ((1-\alpha_{n})U(r_{n})+\alpha_{n}D(r_{n}))F_{n}^{u} + ((1-\alpha_{s})UU(r_{s}))(-F_{s}^{u}) - D_{s}\\[1.5ex]
+&a_{NN} = ((1-\alpha_{n})UU(r_{n}))F_{n}^{u} + 0 \\[1.5ex]
+\end{aligned}\right.\end{equation}
+\newpage
+\noindent 如下圖所示：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{13.png}
+    \caption{\footnotesize x分量動量方程式的空間二階精度TVD-MUSCL離散格式}
+    \label{fig:x分量動量方程式的空間二階精度TVD-MUSCL離散格式}
+\end{figure}
+\subsubsection {y分量動量積分方程式的高階精度離散格式}
+\noindent \textbf{(d(Y(S二維穩態不可壓縮流場)的(y分量動量積分方程式))的(高階精度離散格式))：}
+\begin{equation}\label{eq:general y-mom}\begin{split}
+    b_{P}v_{P} 
+    +&b_{EE}v_{EE} + b_{E}v_{E} + b_{W}v_{W} + b_{WW}v_{WW}\\[0.8ex]
+    +&b_{NN}v_{NN} + b_{N}v_{N} + b_{S}v_{S} + b_{SS}v_{SS}\\[0.8ex]
+    =&\frac{1}{\rho}\frac{-\left(p_{P} - p_{S}\right)}{\delta y} \delta x \delta y
+\end{split}\end{equation}
+\noindent 討論：\\
+\noindent 若方程式\eqref{eq:general y-mom}取為\textbf{空間三階精度QUICK離散格式}，則：
+\begin{equation}\left\{\begin{aligned}
+&b_{P} =-(b_{EE}+b_{E}+b_{W}+b_{WW}+b_{NN}+b_{N}+b_{S}+b_{SS})+F_{e}^{v}-F_{w}^{v}+F_{n}^{v}-F_{s}^{v} \\[0.5ex]
+&b_{WW} = 0 + (\alpha_{w}\frac{-1}{8})(-F_{w}^{v}) \\[0.5ex]
+&b_{W} = (\alpha_{e}\frac{-1}{8})F_{e}^{v} + ((1-\alpha_{w})\frac{3}{8} +\alpha_{w}\frac{6}{8})(-F_{w}^{v}) -D_{e}\\[0.5ex]
+&b_{E} = ((1-\alpha_{e})\frac{6}{8} +\alpha_{e}\frac{3}{8}) F_{e}^{v} + ((1-\alpha_{w})\frac{-1}{8})(-F_{w}^{v}) -D_{w}\\[0.5ex]
+&b_{EE} = ((1-\alpha_{e})\frac{-1}{8})F_{e}^{v} + 0\\[0.5ex]
+&b_{SS} = 0 + (\alpha_{s}\frac{-1}{8})(-F_{s}^{v})\\[0.5ex]
+&b_{S} = (\alpha_{n}\frac{-1}{8})F_{n}^{v} + ((1-\alpha_{s})\frac{3}{8} +\alpha_{s}\frac{6}{8})(-F_{s}^{v}) -D_{n}\\[0.5ex]
+&b_{N} = ((1-\alpha_{n})\frac{6}{8} +\alpha_{n}\frac{3}{8})F_{n}^{v} +  ((1-\alpha_{s})\frac{-1}{8})(-F_{s}^{v}) -D_{s}\\[0.5ex]
+&b_{NN} = ((1-\alpha_{n})\frac{-1}{8})F_{n}^{v} + 0 \\[0.5ex]
+\end{aligned}\right.\end{equation}
+\noindent 如下圖所示：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.1\textwidth]{19.png}
+    \caption{\footnotesize y分量動量方程式的空間三階精度QUICK離散格式}
+    \label{fig:y分量動量方程式的空間三階精度QUICK離散格式}
+\end{figure}
+\noindent 若方程式\eqref{eq:general y-mom}取為\textbf{空間二階精度TVD-MUSCL離散格式}，則：
+\begin{equation}\left\{\begin{aligned}
+&b_{P} =-(b_{EE}+b_{E}+b_{W}+b_{WW}+b_{NN}+b_{N}+b_{S}+b_{SS})\\[1.5ex]
+&\quad +\left(D(r_{w})+U(r_{w})+UU(r_{w})\right)(-F_{w}^{v})\\[1.5ex]
+&\quad +\left(D(r_{e})+U(r_{e})+UU(r_{e})\right)F_{e}^{v}\\[1.5ex]
+&\quad +\left(D(r_{s})+U(r_{s})+UU(r_{s})\right)(-F_{s}^{v})\\[1.5ex]
+&\quad +\left(D(r_{n})+U(r_{n})+UU(r_{n})\right)F_{n}^{v}\\[1.5ex]
+&b_{WW} = 0 + (\alpha_{w}UU(r_{w}))(-F_{w}^{v}) \\[1.5ex]
+&b_{W} = (\alpha_{e}UU(r_{e}))F_{e}^{v} + ((1-\alpha_{w})D(r_{w})+\alpha_{w}U(r_{w}))(-F_{w}^{v}) - D_{w}\\[1.5ex]
+&b_{E} = ((1-\alpha_{e})U(r_{e})+\alpha_{e}D(r_{e}))F_{e}^{v} + ((1-\alpha_{w})UU(r_{w}))(-F_{w}^{v}) - D_{e}\\[1.5ex]
+&b_{EE} = ((1-\alpha_{e})UU(r_{e}))F_{e}^{v}+ 0 \\[1.5ex]
+&b_{SS} = 0 + (\alpha_{s}UU(r_{s}))(-F_{s}^{v})\\[1.5ex]
+&b_{S} = (\alpha_{n}UU(r_{n}))F_{n}^{v} + ((1-\alpha_{s})D(r_{s})+\alpha_{s}U(r_{s}))(-F_{s}^{v}) - D_{s}\\[1.5ex]
+&b_{N} = ((1-\alpha_{n})U(r_{n})+\alpha_{n}D(r_{n}))F_{n}^{v} + ((1-\alpha_{s})UU(r_{s}))(-F_{s}^{v}) - D_{s}\\[1.5ex]
+&b_{NN} = ((1-\alpha_{n})UU(r_{n}))F_{n}^{v} + 0 \\[1.5ex]
+\end{aligned}\right.\end{equation}
+\noindent 如下圖所示：
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{20.png}
+    \caption{\footnotesize y分量動量方程式的空間二階精度TVD-MUSCL離散格式}
+    \label{fig:y分量動量方程式的空間二階精度TVD-MUSCL離散格式}
+\end{figure}
+\noindent 在離散方程式中，x分量動量積分方程的高階精度離散格式的線性組合係數以"a"表示; y分量動量積分方程的高階精度離散格式的線性組合係數以"b"表示。
+\section {SIMPLE算法}
+\subsection {變量的預估值與校正值}
+
+\begin{center}\begin{minipage}[c]{0.4\textwidth}
+    \textbf{原本的三個變數：}
+    \[
+    \left\{
+    \begin{aligned}
+        &u_{i,J} \\[1.5ex]
+        &v_{I,j} \\[1.5ex]
+        &p_{I,J}
+    \end{aligned}
+    \right.
+    \]
+\end{minipage}
+$\xrightarrow{\text{預估校正算法}}$
+\begin{minipage}[c]{0.4\textwidth}
+    \textbf{擴展後的變數：}
+    \[
+    \begin{bmatrix}
+    u_{i,J} & u_{i,J}^{*} & u_{i,J}^{\prime} \\
+    v_{I,j} & v_{I,j}^{*} & v_{I,j}^{\prime} \\
+    p_{I,J} & p_{I,J}^{*} & p_{I,J}^{\prime} \\
+    \end{bmatrix}
+    \]
+\end{minipage}\end{center}
+\noindent 在預估校正算法中，令$u_{i,J}\ ,\ v_{I,j}\ ,\ p_{I,J}$三個變數分解為正確值，預估值，修正值的組合。在原本的Navier-Stokes方程組中，壓力場與速度場相互耦合。
+\begin{enumerate}
+    \item \text{連續方程式：為x方向速度場$u_{i,J}$與y方向速度場$v_{I,j}$的關係式}
+    \item \text{x方向動量方程式：為壓力場$p_{I,J}$與x方向速度場$u_{i,J}$ 的關係式}
+    \item \text{y方向動量方程式：為壓力場$p_{I,J}$與y方向速度場$v_{I,j}$的關係式}
+\end{enumerate}
+\noindent 因此，在動量方程組中，任何一個變數皆不可單獨求解。在動量積分方程的一般離散格式中，透過壓力場$p_{I,J}$的給定，求出x分量速度場$u_{i,J}$，在y分量積分方程式中，透過壓力場的給定，求出y分量速度場$v_{I,j}$，正確的壓力場$p_{I,J}$可以得出正確的速度場$u_{i,J}\ ,\ v_{i,J}$，正確的速度場由連續方程式聯繫，意即滿足$$A_{e}u_{i+1,J} - A_{w}u_{i,J} + A_{n}v_{I,j+1} - A_{s}v_{I,j} = 0$$的速度場($u_{i,J}\ ,\ v_{I,j}$) 為正確的速度場。\\
+但是問題是：正確的壓力場如何求解得知$p_{I,J}$? 因此，只能引入正確值($\rightarrow u_{i,J}^{N}$)，修正值($\rightarrow u_{i,J}^{\prime\ N}$)，預估值($\rightarrow u_{i,J}^{*\ N}$)觀念，透過初步預估，逐步修正的方式，得出正確的速度預估值。
+\subsection {九個變數所應滿足的方程式}
+
+\noindent 方程組的演繹可以分為四個小節：分別為\ref{subsubsec:pre-law}、\ref{subsection:simple-mod}、\ref{subsubsection:simple-accu}、\ref{subsubsection:pressure correction equation}
+
+\subsubsection {預估值的基本方程}
+\label{subsubsec:pre-law}
+\noindent 1. \quad  (R(G(P\ x方向動量積分方程)的(一般離散格式))的(預估值形式))：\\[0.5ex]
+\noindent \quad 控制體積中心點：x方向速度場副計算點 $(i,J)$ \\
+\noindent \quad 迭代步數：N\\
+\noindent \quad 意義：利用(R(P主計算點)且(N 計算步)的(壓力場預估值))\ $p_{I,J}^{*\ N}$求出(K(T\ x方向速度場副計算點)且(N+$\frac{1}{2}$ 計算步)的(x方向速度場預估值))\ $u_{i,J}^{*\ N+\frac{1}{2}}$
+\begin{equation}\label{eq:pre1}\begin{split}
+    &(1)\  (a_{P})_{i,J}^{*\ N}u_{i,J}^{*\ N+\frac{1}{2}} + (a_{WW})_{i,J}^{*\ N}u_{i-2,J}^{*\ N} + (a_{W})_{i,J}^{*\ N}u_{i-1,J}^{*\ N} + (a_{E})_{i+1,J}^{*\ N}u_{i+1,J}^{*\ N} + (a_{EE})_{i+2,J}^{*\ N}u_{i+2,J}^{*\ N} \\[1.5ex]
+    &\quad +(a_{SS})_{i,J}^{*\ N}u_{i,J-2}^{*\ N} + (a_{S})_{i,J}^{*\ N}u_{i,J-1}^{*\ N} + (a_{N})_{i,J}^{*\ N}u_{i,J+1}^{*\ N} + (a_{NN})_{i,J}^{*\ N}u_{i,J+2}^{*\ N} \\[1.5ex]
+    &\quad = {\color{red}\frac{-\left(p_{I,J}^{*\ N} - p_{I-1,J}^{*\ N}\right)}{\rho\delta x}}\delta x \delta y \quad \text{(...pre-x momentum equation)}
+\end{split}\end{equation}
+\noindent 2. \quad  (S(F(U\ y方向動量積分方程)的(一般離散格式))的(預估值形式))：\\
+\noindent \quad 控制體積中心點：y方向速度場副計算點 $(I,j)$ \\
+\noindent \quad 迭代步數：N\\
+\noindent \quad 意義：利用(R(P主計算點)且(N計算步)的(壓力場預估值))\ $p_{I,J}^{*}$求出(L(K\ y方向速度場副計算點)且(N+$\frac{1}{2}$計算步)的(y方向速度場預估值))\ $v_{I,j}^{*}$
+\begin{equation}\label{eq:pre2}\begin{split}
+    &(2)\  (b_{P})_{I,j}^{*\ N}v_{I,j}^{*\ N+\frac{1}{2}} + (b_{WW})_{I,j}^{*\ N}v_{I-2,j}^{*\ N} + (b_{W})_{I,j}^{*\ N}v_{I-1,j}^{*\ N} + (b_{E})_{I,j}^{*\ N}v_{I+1,j}^{*\ N} + (b_{EE})_{I+2,j}^{*\ N}v_{I,j}^{*\ N} \\[1.5ex]
+    &\quad +(b_{SS})_{I,j}^{*\ N}v_{I,j-2}^{*\ N} + (b_{S})_{I,j}^{*\ N}v_{I,j-1}^{*\ N} + (b_{N})_{I,j}^{*\ N}v_{I,j+1}^{*\ N} + (b_{NN})_{I,j}^{*\ N}v_{I,j+2}^{*\ N} \\[1.5ex]
+    &\quad = {\color{red}\frac{-\left(p_{I,J}^{*\ N} - p_{I,J-1}^{*\ N}\right)}{\rho\delta y}}\delta x \delta y \quad \text{(...pre-y momentum equation)}
+\end{split}\end{equation}
+\noindent 3. \quad (D(E(H連續積分方程式)的(一般離散格式))的(預估值形式)) \\[0.5ex]
+\noindent \quad 控制體積中心點：主計算點$(I,J)$\\
+\noindent \quad 迭代步數：N\\
+\noindent 第一次更新速度場預估值就進行連續方程式的判斷。
+\begin{equation}\begin{split}
+    {\color{blue}d_{I,J}^{*\ N}} = A_{e}u_{i+1,J}^{*\ N+\frac{1}{2}} + A_{w}u_{i,J}^{*\ N+\frac{1}{2}}+A_{n}v_{I,j+1}^{*\ N+\frac{1}{2}} -A_{s}v_{I,j}^{*\ N+\frac{1}{2}} \overset{?}{=} 0\quad \text{(...pre-Continuity equation)}
+\end{split}\end{equation}
+\noindent 上述方程式即為速度-壓力校正法中之判斷條件，透過更新壓力場修正值來校正速度場預估值，使得速度場預估值合乎物理，判斷條件之意義為：質量守恆。$d_{I,J}^{N}$的上標N 為應對應當前方程式的迭代步數N。
+\subsubsection {SIMPLE算法下校正值的修正方程式}
+\label{subsection:simple-mod}
+\noindent 若引入如下關係式：
+\begin{equation}\label{eq:relation}\left\{\begin{aligned}
+    &u_{i,J} = u_{i,J}^{*} + u_{i,J}^{\prime}\\[0.5ex] 
+    &v_{I,j} = v_{I,j}^{*} + v_{I,j}^{\prime}\\[0.5ex] 
+    &p_{I,J} = p_{I,J}^{*} + p_{I,J}^{\prime}\\[0.5ex] 
+\end{aligned}\right.\end{equation}
+其中，各個變數的名稱如下所示：
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{|c|>{\centering\arraybackslash}X|}
+\hline
+\textbf{變數名稱} & \textbf{說明} \\
+\hline
+$u_{i,J}^{*}$ & x方向速度場預估值，儲存點：x分量速度場副計算點$(i,J)$ \\
+\hline
+$v_{I,j}^{*}$ & y方向速度場預估值，儲存點：y分量速度場副計算點$(I,j)$ \\
+\hline
+$p_{I,J}^{*}$ & 壓力場預估值，儲存點：主計算點點$(I,J)$ \\
+\hline
+$u_{i,J}^{\prime}$ & x方向速度場修正值，儲存點：x分量速度場副計算點$(i,J)$ \\
+\hline
+$v_{I,j}^{\prime}$ & y方向速度場修正值，儲存點：y分量速度場副計算點$(i,J)$ \\
+\hline
+$p_{I,J}^{\prime}$ & 壓力場修正值，儲存點：主計算點點$(I,J)$ \\
+\hline
+$u_{i,J}$ & x方向速度場正確值，儲存點：x分量速度場副計算點$(i,J)$ \\
+\hline
+$v_{I,j}$ & y方向速度場正確值，儲存點：y分量速度場副計算點$(I,j)$ \\
+\hline
+$p_{I,J}$ & 壓力場正確值，儲存點：主計算點$(I,J)$ \\
+\hline
+\end{tabularx}
+\caption{離散方程：控制體積中心點，變數：儲存點}
+\label{tab:simple-variables-adaptive}
+\end{table}
+\noindent 若在式 \eqref{eq:relation}：(Y(U\ x分量速度場正確值)的(修正預估關係式))以及(S(D\ y分量速度場正確值)的(修正預估關係式))，(X(F壓力場正確值)的(修正預估關係式))中，引入SIMPLE算法中迭代步驟的觀念，則\eqref{eq:relation}為：
+\begin{equation}\left\{\label{eq:SIMPLE-relation}\begin{aligned}
+    &(7)\  u_{i,J}^{N+1} = u_{i,J}^{\prime\ N+1} + u_{i,J}^{*\ N+\frac{1}{2}}\quad \text{(...x方向速度場校正)}\\[0.5ex]
+    &(8)\  v_{I,j}^{N+1} = v_{I,j}^{\prime\ N+1} + v_{I,j}^{*\ N+\frac{1}{2}}\quad \text{(...y方向速度場校正)}\\[0.5ex]
+    &(4)\  p_{I,J}^{N+1} = p_{I,J}^{ * N} + p_{I,J}^{\prime\ N+1} \quad \text{(...壓力場校正)}\\[0.5ex]
+\end{aligned}\right.\end{equation}
+\textbf{建立動量積分方程式的一般離散格式的正確值形式，與連續積分方程式的一般離散格式的正確值形式}，與方程式\eqref{eq:pre1}與\eqref{eq:pre2}類似的有：
+\noindent -x分量\\
+\noindent (R''(G(P\ x分量動量積分方程)的(一般離散格式))的(正確值形式))為：
+\begin{equation}\label{eq:correct1}\begin{split}
+    &(a_{P})_{i,J}^{*\ N}u_{i,J}^{N+1} + (a_{WW})_{i,J}^{*\ N}u_{i-2,J}^{N} + (a_{W})_{i,J}^{*\ N}u_{i-1,J}^{N} + (a_{E})_{i,J}^{*\ N}u_{i+1,J}^{N} + (a_{EE})_{i,J}^{*\ N}u_{i+2,J}^{N} \\[1.5ex]
+    &(a_{SS})_{i,J}^{*\ N}u_{i,J-2}^{N} + (a_{S})_{i,J}^{*\ N}u_{i,J-1}^{N} + (a_{N})_{i,J}^{*\ N}u_{i,J+1}^{N} + (a_{NN})_{i,J}^{*\ N}u_{i,J+2}^{N} \\[1.5ex]
+   =& {\color{red}\frac{-\left(p_{I,J}^{N}  - p_{I-1,J}^{N}\right)}{\rho  \delta x}}\delta x \delta y \quad \text{(...x momentum eq.)} 
+\end{split}\end{equation}
+\noindent -y分量\\
+\noindent 以及(S''(F(U\ y分量動量積分方程)的(一般離散格式))的(正確值形式))為：
+\begin{equation}\label{eq:correct2}\begin{split}
+    &(b_{P})_{I,j}^{*\ N}v_{I,j}^{N+1}  + (b_{WW})_{I,j}^{*\ N}v_{I-2,j}^{N}  + (b_{W})_{I,j}^{*\ N}v_{I-1,j}^{N}  + (b_{E})_{I,j}^{*\ N}v_{I+1,j}^{N}  + (b_{EE})_{I,j}^{*\ N}v_{I+2,j}^{N}  \\[1.5ex]
+    &(b_{SS})_{I,j}^{*\ N}v_{I,j-2}^{N}  + (b_{S})_{I,j}^{*\ N}v_{I,j-1}^{N}  + (b_{N})_{I,j}^{*\ N}v_{I,j+1}^{N}  + (b_{NN})_{I,j}^{*\ N}v_{I,j+2}^{N}  \\[1.5ex]
+   =& {\color{red}\frac{-\left(p_{I,J}^{N+1}  - p_{I,J-1}^{N+1}\right)}{\rho  \delta y}}\delta x \delta y\quad \text{(...y momentum eq.)} 
+\end{split}\end{equation}
+\noindent 將方程式\eqref{eq:correct1}與方程式\eqref{eq:pre1}相減，則有：
+\noindent -x分量\\
+\noindent (R'(G(P\ x分量動量積分方程)的(一般離散格式))的(修正值形式))為：(控制體積中心點：$(i,J)$,迭代步數：N)
+\begin{equation}\label{eq:mod1}\begin{split}
+    &(a_{P})_{i,J}^{*\ N}u_{i,J}^{\prime\ N+1} + (a_{WW})_{i,J}^{*\ N}u_{i-2,J}^{\prime\ N} + (a_{W})_{i,J}^{*\ N}u_{i-1,J}^{\prime\ N} + (a_{E})_{i,J}^{*\ N}u_{i+1,J}^{\prime\ N} + (a_{EE})_{i,J}^{*\ N}u_{i+2,J}^{\prime\ N} \\[1.5ex]
+    &(a_{SS})_{i,J}^{*\ N}u_{i,J-2}^{\prime\ N} + (a_{S})_{i,J}^{*\ N}u_{i,J-1}^{\prime\ N} + (a_{N})_{i,J}^{*\ N}u_{i,J+1}^{\prime\ N} + (a_{NN})_{i,J}^{*\ N}u_{i,J+2}^{\prime\ N} \\[1.5ex]
+   =& {\color{red}\frac{-\left(p_{I,J}^{\prime\ N} - p_{I-1,J}^{\prime\ N}\right)}{\rho  \delta x}}\delta x \delta y \quad \text{(...mod-x momentum eq.)} 
+\end{split}\end{equation}
+\noindent 將方程式\eqref{eq:correct2}與方程式\eqref{eq:pre2}相減，則有：
+\noindent -y分量\\
+\noindent 以及(S'(F(U\ y分量動量積分方程)的(一般離散格式))的(修正值形式))為：(控制體積中心點：$(I,j)$,迭代步數：N)
+\begin{equation}\label{eq:mod2}\begin{split}
+    &(b_{P})_{I,j}^{*\ N}v_{I,j}^{\prime\ N+1} + (b_{WW})_{I,j}^{*\ N}v_{I-2,j}^{\prime\ N} + (b_{W})_{I,j}^{*\ N}v_{I-1,j}^{\prime\ N} + (b_{E})_{I,j}^{*\ N}v_{I+1,j}^{\prime\ N} + (b_{EE})_{I,j}^{*\ N}v_{I+2,j}^{\prime\ N} \\[1.5ex]
+    &(b_{SS})_{I,j}^{*\ N}v_{I,j-2}^{\prime\ N} + (b_{S})_{I,j}^{*\ N}v_{I,j-1}^{\prime\ N} + (b_{N})_{I,j}^{*\ N}v_{I,j+1}^{\prime\ N} + (b_{NN})_{I,j}^{*\ N}v_{I,j+2}^{\prime\ N} \\[1.5ex]
+   =& {\color{red}\frac{-\left(p_{I,J}^{\prime\ N} - p_{I,J-1}^{\prime\ N}\right)}{\rho \delta y}}\delta x \delta y\quad \text{(...mod-y momentum eq.)}
+\end{split}\end{equation}
+\noindent \textbf{SIMPLE修正}：從(mod-x momentum eq.)到(SIMPLE-mod-x momentum eq.)需要經過兩個步驟：
+\begin{enumerate}
+    \item 對方程式\eqref{eq:mod1}、\eqref{eq:mod2}進行簡化，刪除鄰計算點的速度場修正值對計算本點的速度場修正值的影響。
+    \item 壓力場修正值$p_{I,J}^{\prime\ N}$ 使用新的值(其計算步數=$N+1$)。
+\end{enumerate}
+\noindent \textbf{第一步驟：}\footnote{在方程式\eqref{eq:SIMPLE1-mod1}中，使用$(a_{P})_{i,J}^{*\ N+\frac{1}{2}}$，其上標為$\frac{1}{2}$的原因是因為(1)在一輪SIMPLE算法迭代中，x方向速度場預估值會經過兩次更新($N\rightarrow N+\frac{1}{2} \rightarrow N+1$)，而式\eqref{eq:SIMPLE2-mod1}的使用時機為得到$u_{i,J}^{*\ N+\frac{1}{2}}$後，且(2)離散方程的修正值形式\eqref{eq:mod1} 的線性組合係$(a_{P})_{i,J}^{*\ N+\frac{1}{2}}$與x分量速度場預估值$u_{i,J}^{*\ N}$有關 ，式\eqref{eq:SIMPLE1-mod2}同理}\\
+\noindent -x分量\\
+\noindent 在(mod-x momentum eq.)式\eqref{eq:mod1} : (R'(G(P\ x分量動量積分方程)的(一般離散格式))的(修正值形式))中 ，進行簡化，{\color{red}忽略各個臨界計算點上，(R(d\ x分量速度場副計算點)且(N計算步)的(x分量速度場預估值))(e.g., $u_{i+2,J}^{\prime\ N},u_{i+1,J}^{\prime\ N}....$)}。
+因此有：(H(R'(G(P\ x分量動量積分方程)的(一般離散格式))的(修正值形式))的(SIMPLE初步簡化))為：
+\begin{equation}\label{eq:SIMPLE1-mod1}\begin{split}
+    &(a_{P})_{i,J}^{*\ N+\frac{1}{2}}u_{i,J}^{\prime\ N+1}
+    ={\color{red}\frac{-\left(p_{I,J}^{\prime\ N} - p_{I-1,J}^{\prime\ N}\right)}{\rho \delta x}}\delta x \delta y  
+\end{split}\end{equation}
+\noindent -y分量\\
+\noindent 在(mod-y momentum eq.)式\eqref{eq:mod2} : (S'(F(U\ y分量動量積分方程)的(一般離散格式))的(修正值形式))中 ，進行簡化，{\color{blue}忽略各個臨界計算點上的，(v(e\ y分量速度場副計算點)且(N計算步)的(y分量速度場預估值))(e.g., $v_{I+2,j}^{\prime\ N},v_{I+1,j}^{\prime\ N}....$)}。
+因此有： (C(S'(F(U\ y分量動量積分方程)的(一般離散格式))的(修正值形式))的(SIMPLE初步簡化))為：
+\begin{equation}\label{eq:SIMPLE1-mod2}\begin{split}
+    &(b_{P})_{I,j}^{*\ N+\frac{1}{2}}v_{I,j}^{\prime\ N+1}  = {\color{blue}\frac{-\left(p_{I,J}^{\prime\ N} - p_{I,J-1}^{\prime\ N}\right)}{\rho \delta y}}\delta x \delta y
+\end{split}\end{equation}
+\noindent \textbf{第二步驟：}SIMPLE初步簡化的(T(D(P主計算點)的(壓力場修正值))的(計算步數))取為$N+1$ \\
+\noindent -x分量\\
+\noindent 在方程式\eqref{eq:SIMPLE1-mod1}中，(F(P主計算點)且(N計算步)的(壓力場修正值))$\ p_{I,J}^{\prime \ N}$取為(f(P主計算點)且(N+1計算步)的(壓力場修正值))$\ p_{I,J}^{\prime \ N+1}$ 。
+因此，(H'(R'(G(P\ x分量動量積分方程)的(一般離散格式))的(修正值形式))的(SIMPLE簡化))為：
+\begin{equation}\label{eq:SIMPLE2-mod1}\begin{split}
+    &(a_{P})_{i,J}^{*\ N+\frac{1}{2}}u_{i,J}^{\prime\ N+1}
+    ={\color{red}\frac{-\left(p_{I,J}^{\prime\ N+1} - p_{I-1,J}^{\prime\ N+1}\right)}{\rho \delta x}}\delta x \delta y \quad \text{(...SIMPLE-mod x-momentum equation)} 
+\end{split}\end{equation}
+\noindent -y分量\\
+\noindent 在方程式\eqref{eq:SIMPLE1-mod2}中，(S(P主計算點)且(N計算步)的(壓力場修正值))$\ p_{I,J}^{\prime \ N}$取為(s(P主計算點)且(N+1計算步)的(壓力場修正值))$\ p_{I,J}^{\prime \ N+1}$ 。
+因此，(C'(S'(F(U\ y分量動量積分方程)的(一般離散格式))的(修正值形式))的(SIMPLE簡化))為：
+\begin{equation}\label{eq:SIMPLE2-mod2}\begin{split}
+    &(b_{P})_{I,j}^{*\ N+\frac{1}{2}}v_{I,j}^{\prime\ N+1}  = {\color{blue}\frac{-\left(p_{I,J}^{\prime\ N+1} - p_{I,J-1}^{\prime\ N+1}\right)}{\rho \delta y}}\delta x \delta y  \quad \text{(...SIMPLE-mod y-momentum equation)}
+\end{split}\end{equation}
+\noindent \textbf{統整}\ref{subsection:simple-mod}\\[1.5ex]
+\noindent 方程式\eqref{eq:SIMPLE2-mod1}
+\begin{enumerate}
+    \item 名稱：(H'(R'(G(P\ x分量動量積分方程)的(一般離散格式))的(修正值形式))的(SIMPLE簡化))
+    \item 控制體積中心點：$(i,J)$
+    \item 迭代步數：N
+    \item 意義：(D(P主計算點)且(N+1計算步)的(壓力場修正值))$\ \rightarrow\ $(R(T x分量速度場副計算點)且(N+1計算步)的(x分量速度場修正值))
+\end{enumerate}
+\noindent 方程式\eqref{eq:SIMPLE2-mod2}
+\begin{enumerate}
+    \item 名稱：(C'(S'(F(U\ y分量動量積分方程)的(一般離散格式))的(修正值形式))的(SIMPLE簡化))
+    \item 控制體積中心點：$(I,j)$
+    \item 迭代步數：N
+    \item 意義：(D(P主計算點)且(N+1計算步)的(壓力場修正值))$\ \rightarrow\ $(W(K y分量速度場副計算點)且(N+1計算步)的(y 分量速度場修正值))
+\end{enumerate}
+\subsubsection{SIMPLE算法下正確值的修正方程}
+\label{subsubsection:simple-accu}
+
+若將式\eqref{eq:SIMPLE-relation}:\textbf{各變量的修正預估關係式}中，
+\begin{enumerate}
+    \item(Y'(U\ x分量速度場正確值)的(修正預估關係式))
+    \item(S(D\ y分量速度場正確值)的(修正預估關係式))
+    \item(X(F壓力場正確值)的(修正預估關係式))
+\end{enumerate}
+帶入方程式\eqref{eq:SIMPLE2-mod1}與\eqref{eq:SIMPLE2-mod2}中，則分別有：\\
+\noindent -x分量\\
+\noindent (T(R''(G(P\ x分量動量積分方程)的(一般離散格式))的(正確值形式))的(SIMPLE修正)):
+\begin{equation}\label{eq:SIMPLE-accu1}\begin{split}
+    u_{i,J}^{N+1} = u_{i,J}^{*\ N+\frac{1}{2}} + {\color{red}\frac{\delta x\delta y}{(a_{P})_{i,J}^{*\ N+\frac{1}{2}}}\frac{-\left(p_{I,J}^{\prime\ N+1} - p_{I-1,J}^{\prime\ N+1}\right)}{\rho \delta x}} \quad \text{(...SIMPLE-x momentum eq.)}
+\end{split}\end{equation}
+\noindent -y分量\\
+\noindent (L(S''(F(U\ y分量動量積分方程)的(一般離散格式))的(正確值形式))的(SIMPLE修正)):
+\begin{equation}\label{eq:SIMPLE-accu2}\begin{split}
+    v_{I,j}^{N+1} = v_{I,j}^{*\ N+\frac{1}{2}} + {\color{blue}\frac{\delta x\delta y}{(b_{P})_{I,j}^{*\ N+\frac{1}{2}}}\frac{-\left(p_{I,J}^{\prime\ N+1} - p_{I,J-1}^{\prime\ N+1}\right)}{\rho  \delta y}} \quad \text{(...SIMPLE-y momentum eq.)}
+\end{split}\end{equation}
+\noindent 上二式\eqref{eq:SIMPLE-accu1}\ , \eqref{eq:SIMPLE-accu2}即為SIMPLE算法中，聯繫
+1.(D(P主計算點)且(N+1計算步)的(壓力場修正值))$p_{I,J}^{\prime\ N+1}$\\
+2.(K(T\ x方向速度場副計算點)且(N+$\frac{1}{2}$ 計算步)的(x方向速度場預估值))$u_{i,J}^{*\ N+\frac{1}{2}}$\\
+3.(D(G x分量速度場副計算點)且(N+1計算步)的(x分量速度場正確值))$u_{i,J}^{N+1}$
+三者的關係。其中，計算步數為N+1的速度場正確值($:u_{i,J}^{N+1}\ v_{I,j}^{N+1}$)將賦值給計算步數為N+1的速度場預估值$u_{i,J}^{*\ N+1}\ v_{I,j}^{*\ N+1}$，
+透過{\color{red}壓力場修正值$p_{I,J}^{N+1\prime}$}的求解，實現{\color{blue}速度場預估值的迭代更新$u_{i,J}^{*\ N+\frac{1}{2}} \Rightarrow u_{i,J}^{*\ N+1} $}。
+\noindent 以下將整理這兩條重要的方程。\\
+\noindent 1. \quad  (T(R''(G(P\ x分量動量積分方程)的(一般離散格式))的(正確值形式))的(SIMPLE修正)):\\
+\noindent \quad 控制體積中心點：x方向速度場副計算點 $(i,J)$ \\[0.5ex]
+\noindent \quad 迭代步數 : N \\[0.5ex]
+\noindent \quad 意義：已知(1)(D(P主計算點)且(N+1計算步)的(壓力場修正值))且(2)(K(T\ x方向速度場副計算點)且(N+$\frac{1}{2}$ 計算步)的(x方向速度場預估值))，求得：(D(T\ x分量速度場副計算點)且(N+1計算步)的(x分量速度場正確值))
+\[\left\{
+\begin{array}{l}p_{I,J}^{\prime\ N+1}\\
+    u_{i,J}^{*\ N+\frac{1}{2}}\\
+\end{array}\right.
+\Rightarrow u_{i,J}^{N+1}\]
+\noindent 2. \quad  (L(S''(F(U\ y分量動量積分方程)的(一般離散格式))的(正確值形式))的(SIMPLE修正)):\\
+\noindent \quad 控制體積中心點：y方向速度場副計算點 $(I,j)$ \\[0.5ex]
+\noindent \quad 迭代步數 : N \\[0.5ex]
+\noindent \quad 意義：已知(1)(D(P主計算點)且(N+1計算步)的(壓力場修正值))且(2)(L(K\ y方向速度場副計算點)且(N+$\frac{1}{2}$計算步)的(y方向速度場預估值))，求出：(P(K y分量速度場副計算點)且(N+1計算步)的(y分量速度場正確值))
+\[\left\{
+\begin{array}{l}p_{I,J}^{\prime\ N+1}\\
+    v_{I,j}^{*\ N+\frac{1}{2}}\\
+\end{array}\right.
+\Rightarrow v_{I,j}^{N+1}\]
+\subsubsection {壓力校正方程(pressure correction equation)}
+\label{subsubsection:pressure correction equation}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.3\textwidth]{14.png}
+    \caption{\footnotesize 離散方程中的下標規則，線性組合係數的下標與變量下標意義不同}
+    \label{fig: 離散方程中的下標規則}
+\end{figure}
+\noindent 現在的問題是：\\
+\noindent （後見之明：求解三個變數$u,v,p$的順序為先得到壓力場$p$，再得到速度場$u,v$，將動量方程中的壓力梯度作為求解速度場的外源項 (source term)，動量方程是僅僅只是速度場得統御方程式。）\\
+\noindent 正確的壓力場產生正確的正確的速度場，而何謂正確的速度場？滿足連續方程式的速度場為正確的速度場。
+\begin{equation}\begin{aligned}
+    &\frac{\partial \rho u}{\partial  x} + \frac{\partial \rho v}{\partial y} = 0 \ \text{(conservation form)}\\[1.5ex]
+    &F_{e}^{p} - F_{w}^{p} + F_{n}^{p} - F_{s}^{p} = 0 \ \text{(discrete form of the integration continuity equation)} \\[1.5ex] 
+\end{aligned}\end{equation}
+\noindent 但是，在Navier-Stokes 方程組中，可以發現對於三個變數$p \ ,\ u\ ,\ v$彼此耦合，相互關聯，所以並沒有一個方程是單獨作為其中一個變數的Governing equation，意即每一個方程式的自由度都是2。所以為了要得到正確的速度場，我們的目標是為建立以下方程：
+\\[1.5ex] \noindent (1) 該方程為壓力場的統御方程式(Governing equation of pressure field)\\[1.0ex]
+\noindent (2) 該方程在Navier-Stokes組中，等效於連續方程式。\\
+\noindent 但是，可以預期那子的方程式仍然包含速度場，為使該方程作為壓力場的統御方程式，令該方程所包含的速度場速度場預估值，作為求解壓力場的外援項(source term)，最後製造出壓力場的統御方程式。
+\noindent 從動量積分方程的一般離散格式的修正值形式的SIMPLE簡化出發：
+\begin{equation}\begin{aligned}
+    &(a_{P})_{i,J}^{*\ N+\frac{1}{2}}u_{i,J}^{\prime\ N+1}
+    ={\color{red}\frac{-\left(p_{I,J}^{\prime\ N+1} - p_{I-1,J}^{\prime\ N+1}\right)}{\rho \delta x}}\delta x \delta y \quad \text{(...SIMPLE-mod x-momentum equation)} \\[1.5ex]
+    &(b_{P})_{I,j}^{*\ N+\frac{1}{2}}v_{I,j}^{\prime\ N+1}  = {\color{blue}\frac{-\left(p_{I,J}^{\prime\ N+1} - p_{I,J-1}^{\prime\ N+1}\right)}{\rho  \delta y}}\delta x \delta y  \quad \text{(...SIMPLE-mod y-momentum equation)}
+\end{aligned}\end{equation}
+將上式帶入連續積分方程式的一般離散格式的修正值形式：
+\begin{equation}A_{e}u_{i+1,J}^{\prime} - A_{w}u_{i,J}^{\prime}+A_{n}v_{I,j+1}^{\prime} - A_{s}v_{I,j}^{\prime} = 0 \end{equation}
+\noindent 則有：
+\noindent (y(A(R(d連續積分方程)的(一般離散格式))的(修正值形式))的(SIMPLE修正)):
+\begin{equation}\label{eq:pressure correction equation}\begin{aligned}
+     &(3)\  \left(\frac{\delta y}{{\color{red}\rho(a_{P})_{i+1,J}^{*\ N+\frac{1}{2}}}}+
+        \frac{\delta y}{{\color{red}\rho(a_{P})_{i,J}^{*\ N+\frac{1}{2}}}}+
+        \frac{\delta x}{{\color{red}\rho(b_{P})_{I,j+1}^{*\ N+\frac{1}{2}}}}+
+        \frac{\delta x}{{\color{red}\rho(b_{P})_{I,j}^{*\ N+\frac{1}{2}}}}\right)p_{I,J}^{\prime\ N+1}\\[1.5ex]
+    &\quad  +
+        \left(\frac{-\delta x}{{\color{red}\rho(b_{P})_{I,j}^{*\ N+\frac{1}{2}}}}\right)p_{I,J-1}^{\prime\ N} + 
+        \left(\frac{-\delta x}{{\color{red}\rho(b_{P})_{I,j+1}^{*\ N+\frac{1}{2}}}}\right)p_{I,J+1}^{\prime\ N} \ + 
+        \left(\frac{-\delta y}{{\color{red}\rho(a_{P})_{i,J}^{*\ N+\frac{1}{2}}}}\right)p_{I-1,J}^{\prime\ N} + 
+        \left(\frac{-\delta y}{{\color{red}\rho(a_{P})_{i+1,J}^{*\ N+\frac{1}{2}}}}\right)p_{I+1,J}^{\prime\ N} \\[1.5ex]
+    &\quad = - \left( {\color{blue}u_{i+1,J}^{*\ N+\frac{1}{2}} - u_{i,J}^{*\ N+\frac{1}{2}} + v_{I,j+1}^{*\ N+\frac{1}{2}} - v_{I,j}^{*\ N+\frac{1}{2}}} \right) \quad \text{(...SIMPLE-discrete-continuity equation)}
+\end{aligned}\end{equation}
+其中，$- \left( {\color{blue}u_{i+1,J}^{*\ N+\frac{1}{2}} - u_{i,J}^{*\ N+\frac{1}{2}} + v_{I,j+1}^{*\ N+\frac{1}{2}} - v_{I,j}^{*\ N+\frac{1}{2}}} \right) $ 做為整個方程的外源項，單獨求解壓力場修正值。
+方程式\eqref{eq:pressure correction equation}即稱為 壓力場校正方程
+(pressure correction equation) \\
+因此，以下將依據SIMPLE算法之順序，列出演算法執行過程中依序所使用的方程式：\\
+\newpage
+\noindent 註記1: \\
+\noindent 以下方程組需要注意的是：動量積分方程式的一般離散格式的線性組合係數$(a_{P})_{i,J}^{*\ N}$，使用到的速度場$u_{i,J}^{*\ N}$為來自上一輪迭代下的速度場，所以該變量取值在計算步 = N，而非計算步 = N+1。且離散方程的線性組合係數總是取速度場預估值。同理，$(b_{P})_{I,j}^{*\ N}$亦然。
+\begin{equation}
+\label{eq:equvialent equations1}
+\left\{
+\begin{aligned}
+    &(1)\  (a_{P})_{i,J}^{*\ N}u_{i,J}^{*\ N+\frac{1}{2}} + (a_{WW})_{i,J}^{*\ N}u_{i-2,J}^{*\ N} + (a_{W})_{i,J}^{*\ N}u_{i-1,J}^{*\ N} + (a_{E})_{i+1,J}^{*\ N}u_{i+1,J}^{*\ N} + (a_{EE})_{i+2,J}^{*\ N}u_{i+2,J}^{*\ N} \\[1.5ex]
+    &\quad +(a_{SS})_{i,J}^{*\ N}u_{i,J-2}^{*\ N} + (a_{S})_{i,J}^{*\ N}u_{i,J-1}^{*\ N} + (a_{N})_{i,J}^{*\ N}u_{i,J+1}^{*\ N} + (a_{NN})_{i,J}^{*\ N}u_{i,J+2}^{*\ N} \\[1.5ex]
+    &\quad = {\color{red}-\frac{p_{I,J}^{*\ N} - p_{I-1,J}^{*\ N}}{\rho\delta x}}\delta x \delta y \quad \text{(...pre-discrete-x momentum equation)}\\[1.5ex]
+    &(2)\  (b_{P})_{I,j}^{*\ N}v_{I,j}^{*\ N+\frac{1}{2}} + (b_{WW})_{I,j}^{*\ N}v_{I-2,j}^{*\ N} + (b_{W})_{I,j}^{*\ N}v_{I-1,j}^{*\ N} + (b_{E})_{I,j}^{*\ N}v_{I+1,j}^{*\ N} + (b_{EE})_{I+2,j}^{*\ N}v_{I,j}^{*\ N} \\[1.5ex]
+    &\quad +(b_{SS})_{I,j}^{*\ N}v_{I,j-2}^{*\ N} + (b_{S})_{I,j}^{*\ N}v_{I,j-1}^{*\ N} + (b_{N})_{I,j}^{*\ N}v_{I,j+1}^{*\ N} + (b_{NN})_{I,j}^{*\ N}v_{I,j+2}^{*\ N} \\[1.5ex]
+    &\quad = {\color{red}-\frac{p_{I,J}^{*\ N} - p_{I,J-1}^{*\ N}}{\rho\delta y}}\delta x \delta y \quad \text{(...pre-discrete-y momentum equation)}\\[1.5ex]
+    &(3)\quad \left(\frac{\delta y}{{\color{red}\rho(a_{P})_{i+1,J}^{*\ N+\frac{1}{2}}}}+
+        \frac{\delta y}{{\color{red}\rho(a_{P})_{i,J}^{*\ N+\frac{1}{2}}}}+
+        \frac{\delta x}{{\color{red}\rho(b_{P})_{I,j+1}^{*\ N+\frac{1}{2}}}}+
+        \frac{\delta x}{{\color{red}\rho(b_{P})_{I,j}^{*\ N+\frac{1}{2}}}}\right)p_{I,J}^{\prime\ N+1}\\[1.5ex]
+    \quad  &=
+        \left(\frac{\delta x}{{\color{red}\rho(b_{P})_{I,j}^{*\ N+\frac{1}{2}}}}\right)p_{I,J-1}^{\prime\ N} + 
+        \left(\frac{\delta x}{{\color{red}\rho(b_{P})_{I,j+1}^{*\ N+\frac{1}{2}}}}\right)p_{I,J+1}^{\prime\ N} \ + 
+        \left(\frac{\delta y}{{\color{red}\rho(a_{P})_{i,J}^{*\ N+\frac{1}{2}}}}\right)p_{I-1,J}^{\prime\ N} + 
+        \left(\frac{\delta y}{{\color{red}\rho(a_{P})_{i+1,J}^{*\ N+\frac{1}{2}}}}\right)p_{I+1,J}^{\prime\ N} \\[1.5ex]
+    &\quad + {\color{blue}u_{i,J}^{*\ N+\frac{1}{2}} - u_{i+1,J}^{*\ N+\frac{1}{2}} + v_{I,j}^{*\ N+\frac{1}{2}} - v_{I,j+1}^{*\ N+\frac{1}{2}}} \quad \text{(...SIMPLE-discrete-continuity equation)}\\[1.5ex]
+    &(4)\  p_{I,J}^{N+1} = p_{I,J}^{ * N} + p_{I,J}^{\prime\ N+1} \quad \text{(...壓力場校正關係式)}\\[1.5ex]
+    &(5)\  {\color{blue}(a_{P})_{i,J}^{*\ N+\frac{1}{2}}}u_{i,J}^{\prime\ N+1} = {\color{red}\frac{p_{I,J}^{\prime\ N+1} - p_{I-1,J}^{\prime\ N+1}}{\rho\delta x}}\delta x\delta y \quad \text{(...SIMPLE-mod-discrete-x momentum equation)}\\[1.5ex]
+    &(6)\  {\color{blue}(b_{P})_{I,j}^{*\ N+\frac{1}{2}}}v_{I,j}^{\prime\ N+1} = {\color{red}\frac{p_{I,J}^{\prime\ N+1} - p_{I,J-1}^{\prime\ N+1}}{\rho\delta y}}\delta x\delta y \quad \text{(...SIMPLE-mod-discrete- y momentum equation)}\\[1.5ex]
+    &(7)\  u_{i,J}^{N+1} = u_{i,J}^{\prime\ N+1} + u_{i,J}^{*\ N+\frac{1}{2}}\quad \text{(...x方向速度場校正關係式)}\\[1.5ex]
+    &(8)\  v_{I,j}^{N+1} = v_{I,j}^{\prime\ N+1} + v_{I,j}^{*\ N+\frac{1}{2}}\quad \text{(...y方向速度場校正關係式)}\\[1.5ex]
+    &(9)\  A_{e}u_{i+1,J}^{*\ N+\frac{1}{2}} + A_{w}u_{i,J}^{*\ N+\frac{1}{2}}+A_{n}v_{I,j+1}^{*\ N+\frac{1}{2}} -A_{s}v_{I,j}^{*\ N+\frac{1}{2}} \overset{?}{=} 0\quad \text{(...pre-discrete-Continuity equation)}\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\newpage
+\noindent 註記2: \\
+\noindent 下述方程式為SIMPLE算法中，依序使用的方程組，逐步更新九個變數在同一輪迭代步數中。且此方程組與式\eqref{eq:equvialent equations1} 等效。
+\begin{equation}
+\label{eq:equvialent equations2}
+\left\{
+\begin{aligned}
+    &(1)\  (a_{P})_{i,J}^{*\ N}u_{i,J}^{*\ N+\frac{1}{2}} + (a_{WW})_{i,J}^{*\ N}u_{i-2,J}^{*\ N} + (a_{W})_{i,J}^{*\ N}u_{i-1,J}^{*\ N} + (a_{E})_{i+1,J}^{*\ N}u_{i+1,J}^{*\ N} + (a_{EE})_{i+2,J}^{*\ N}u_{i+2,J}^{*\ N} \\[1.5ex]
+    &\quad +(a_{SS})_{i,J}^{*\ N}u_{i,J-2}^{*\ N} + (a_{S})_{i,J}^{*\ N}u_{i,J-1}^{*\ N} + (a_{N})_{i,J}^{*\ N}u_{i,J+1}^{*\ N} + (a_{NN})_{i,J}^{*\ N}u_{i,J+2}^{*\ N} \\[1.5ex]
+    &\quad = {\color{red}-\frac{p_{I,J}^{*\ N} - p_{I-1,J}^{*\ N}}{\rho\delta x}}\delta x \delta y \quad \text{(...pre-discrete-x momentum equation)}\\[1.5ex]
+    &(2)\  (b_{P})_{I,j}^{*\ N}v_{I,j}^{*\ N+\frac{1}{2}} + (b_{WW})_{I,j}^{*\ N}v_{I-2,j}^{*\ N} + (b_{W})_{I,j}^{*\ N}v_{I-1,j}^{*\ N} + (b_{E})_{I,j}^{*\ N}v_{I+1,j}^{*\ N} + (b_{EE})_{I+2,j}^{*\ N}v_{I,j}^{*\ N} \\[1.5ex]
+    &\quad +(b_{SS})_{I,j}^{*\ N}v_{I,j-2}^{*\ N} + (b_{S})_{I,j}^{*\ N}v_{I,j-1}^{*\ N} + (b_{N})_{I,j}^{*\ N}v_{I,j+1}^{*\ N} + (b_{NN})_{I,j}^{*\ N}v_{I,j+2}^{*\ N} \\[1.5ex]
+    &\quad = {\color{red}-\frac{p_{I,J}^{*\ N} - p_{I,J-1}^{*\ N}}{\rho\delta y}}\delta x \delta y \quad \text{(...pre-discrete-y momentum equation)}\\[1.5ex]
+    &(3)\quad \left(\frac{\delta y}{{\color{red}\rho(a_{P})_{i+1,J}^{*\ N+\frac{1}{2}}}}+
+        \frac{\delta y}{{\color{red}\rho(a_{P})_{i,J}^{*\ N+\frac{1}{2}}}}+
+        \frac{\delta x}{{\color{red}\rho(b_{P})_{I,j+1}^{*\ N+\frac{1}{2}}}}+
+        \frac{\delta x}{{\color{red}\rho(b_{P})_{I,j}^{*\ N+\frac{1}{2}}}}\right)p_{I,J}^{\prime\ N+1}\\[1.5ex]
+    \quad  &=
+        \left(\frac{\delta x}{{\color{red}\rho(b_{P})_{I,j}^{*\ N+\frac{1}{2}}}}\right)p_{I,J-1}^{\prime\ N} + 
+        \left(\frac{\delta x}{{\color{red}\rho(b_{P})_{I,j+1}^{*\ N+\frac{1}{2}}}}\right)p_{I,J+1}^{\prime\ N} \ + 
+        \left(\frac{\delta y}{{\color{red}\rho(a_{P})_{i,J}^{*\ N+\frac{1}{2}}}}\right)p_{I-1,J}^{\prime\ N} + 
+        \left(\frac{\delta y}{{\color{red}\rho(a_{P})_{i+1,J}^{*\ N+\frac{1}{2}}}}\right)p_{I+1,J}^{\prime\ N} \\[1.5ex]
+    &\quad + {\color{blue}u_{i,J}^{*\ N+\frac{1}{2}} - u_{i+1,J}^{*\ N+\frac{1}{2}} + v_{I,j}^{*\ N+\frac{1}{2}} - v_{I,j+1}^{*\ N+\frac{1}{2}}} \quad \text{(...SIMPLE-discrete-continuity equation)}\\[1.5ex]
+    &(4)\  p_{I,J}^{N+1} = p_{I,J}^{ * N} + p_{I,J}^{\prime\ N+1} \quad \text{(...壓力場校正關係式)}\\[1.5ex]
+    &(5)\  {\color{blue}(a_{P})_{i,J}^{*\ N+\frac{1}{2}}}u_{i,J}^{\prime\ N+1} = {\color{red}\frac{p_{I,J}^{\prime\ N+1} - p_{I-1,J}^{\prime\ N+1}}{\rho\delta x}}\delta x\delta y \quad \text{(...SIMPLE-mod-discrete-x momentum equation)}\\[1.5ex]
+    &(6)\  {\color{blue}(b_{P})_{I,j}^{*\ N+\frac{1}{2}}}v_{I,j}^{\prime\ N+1} = {\color{red}\frac{p_{I,J}^{\prime\ N+1} - p_{I,J-1}^{\prime\ N+1}}{\rho\delta y}}\delta x\delta y \quad \text{(...SIMPLE-mod-discrete-y momentum equation)}\\[1.5ex]
+    &(7)\  u_{i,J}^{N+1} = {\color{red}\frac{p_{I,J}^{\prime\ N+1} - p_{I-1,J}^{\prime\ N+1}}{{\color{blue}(a_{P})_{i,J}^{*\ N+\frac{1}{2}}}\rho\delta x}}\delta x\delta y + u_{i,J}^{*\ N+\frac{1}{2}}\ \text{(...SIMPLE-discrete-x momentum equation)}\\[1.5ex]
+    &(8)\  v_{I,j}^{N+1} = {\color{red}\frac{p_{I,J}^{\prime\ N+1} - p_{I,J-1}^{\prime\ N+1}}{{\color{blue}(b_{P})_{I,j}^{*\ N+\frac{1}{2}}}\rho\delta y}}\delta x\delta y  + v_{I,j}^{*\ N+\frac{1}{2}}\ \text{(...SIMPLE-discrete-y momentum equation)}\\[1.5ex]
+    &(9)\  A_{e}u_{i+1,J}^{*\ N+\frac{1}{2}} + A_{w}u_{i,J}^{*\ N+\frac{1}{2}}+A_{n}v_{I,j+1}^{*\ N+\frac{1}{2}} -A_{s}v_{I,j}^{*\ N+\frac{1}{2}} \overset{?}{=} 0\quad \text{(...pre-discrete-Continuity equation)}\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\newpage
+\noindent 註記3: 引入以下四個方程式 
+\footnote {$\alpha_{p}$ : 壓力場正確值鬆弛因子，$\alpha_{u}$ : x分量速度場正確值鬆弛因子，$\alpha_{v}$ : y分量速度場正確值鬆弛因子 }\\
+\noindent 1.方程式：(修正)\\
+\noindent (F(y(A(R(d連續積分方程)的(一般離散格式))的(正確值形式))的(SIMPLE修正))的(鬆弛迭代改進))：
+\begin{equation}\label{eq:relaxation continuity equation}\begin{aligned}
+     &(3)\quad \left(\frac{\delta y\alpha_{u}}{{\color{red}\rho(a_{P})_{i+1,J}^{*\ N+\frac{1}{2}}}}+
+        \frac{\delta y\alpha_{u}}{{\color{red}\rho(a_{P})_{i,J}^{*\ N+\frac{1}{2}}}}+
+        \frac{\delta x\alpha_{v}}{{\color{red}\rho(b_{P})_{I,j+1}^{*\ N+\frac{1}{2}}}}+
+        \frac{\delta x\alpha_{v}}{{\color{red}\rho(b_{P})_{I,j}^{*\ N+\frac{1}{2}}}}\right)p_{I,J}^{\prime\ N+1}\\[1.5ex]
+    \quad  &=
+        \left(\frac{\delta x\alpha_{u}}{{\color{red}\rho(b_{P})_{I,j}^{*\ N+\frac{1}{2}}}}\right)p_{I,J-1}^{\prime\ N} + 
+        \left(\frac{\delta x\alpha_{u}}{{\color{red}\rho(b_{P})_{I,j+1}^{*\ N+\frac{1}{2}}}}\right)p_{I,J+1}^{\prime\ N} \ + 
+        \left(\frac{\delta y\alpha_{v}}{{\color{red}\rho(a_{P})_{i,J}^{*\ N+\frac{1}{2}}}}\right)p_{I-1,J}^{\prime\ N} + 
+        \left(\frac{\delta y\alpha_{v}}{{\color{red}\rho(a_{P})_{i+1,J}^{*\ N+\frac{1}{2}}}}\right)p_{I+1,J}^{\prime\ N} \\[1.5ex]
+    &\quad + {\color{blue}u_{i,J}^{*\ N+\frac{1}{2}} - u_{i+1,J}^{*\ N+\frac{1}{2}} + v_{I,j}^{*\ N+\frac{1}{2}} - v_{I,j+1}^{*\ N+\frac{1}{2}}} \quad \text{(...SIMPLE-discrete-continuity equation)}\\[1.5ex]
+    \end{aligned}\end{equation}
+\noindent 2.方程式：(修正)\\
+\noindent (H(A壓力場校正關係式)的(鬆弛迭代改進))：
+\begin{equation}
+    (4)\  p_{I,J}^{N+1} = p_{I,J}^{ * N} + \alpha_{p} p_{I,J}^{\prime\ N+1}\quad \text{(...relaxtion-壓力場校正關係式)}\\
+\end{equation}
+\noindent 3.方程式：\\
+\noindent (F x分量速度場正確值鬆弛迭代關係式)：
+\begin{equation}
+    (10)\ u_{i,J}^{N+1} = \alpha_{u}u_{i,J}^{GS\ N+1} + (1-\alpha_{u})u_{i,J}^{N}
+\end{equation}
+\noindent 4.方程式：\\
+\noindent (D y分量速度場正確值鬆弛迭代關係式)：
+\begin{equation}
+    (11)\ v_{I,j}^{N+1} = \alpha_{v}v_{I,j}^{GS\ N+1} + (1-\alpha_{v})v_{I,j}^{N}
+\end{equation}
+\noindent 5.方程式：(修正)\\
+\noindent (a(S x分量速度場校正關係式)的(鬆弛迭代改進))：
+\begin{equation}
+    (7)\  u_{i,J}^{N+1} = \alpha_{u}\left(u_{i,J}^{\prime\ N+1} + u_{i,J}^{*\ N+\frac{1}{2}}\right) + (1-\alpha_{u}) u_{i,J}^{N} \quad \text{(...relaxation-x方向速度場校正關係式)}
+\end{equation}
+\noindent 6.方程式：(修正)\\
+\noindent (b (T y分量速度場校正關係式)的(鬆弛迭代改進))：
+\begin{equation}
+    (8)\  v_{I,j}^{N+1} = \alpha_{v}\left(v_{I,j}^{\prime\ N+1} + v_{I,j}^{*\ N+\frac{1}{2}}\right) + (1-\alpha_{v}) v_{I,j}^{N} \quad \text{(...relaxation-y方向速度場校正關係式)}
+\end{equation}
+\begin{equation}
+\label{eq:equvialent equations 3}
+\left\{
+\begin{aligned}
+    &(1)\  (a_{P})_{i,J}^{*\ N}u_{i,J}^{*\ N+\frac{1}{2}} + (a_{WW})_{i,J}^{*\ N}u_{i-2,J}^{*\ N} + (a_{W})_{i,J}^{*\ N}u_{i-1,J}^{*\ N} + (a_{E})_{i+1,J}^{*\ N}u_{i+1,J}^{*\ N} + (a_{EE})_{i+2,J}^{*\ N}u_{i+2,J}^{*\ N} \\[1.5ex]
+    &\quad +(a_{SS})_{i,J}^{*\ N}u_{i,J-2}^{*\ N} + (a_{S})_{i,J}^{*\ N}u_{i,J-1}^{*\ N} + (a_{N})_{i,J}^{*\ N}u_{i,J+1}^{*\ N} + (a_{NN})_{i,J}^{*\ N}u_{i,J+2}^{*\ N} \\[1.5ex]
+    &\quad = {\color{red}-\frac{p_{I,J}^{*\ N} - p_{I-1,J}^{*\ N}}{\rho\delta x}}\delta x \delta y \quad \text{(...pre-discrete-x momentum equation)}\\[1.5ex]
+    &(2)\  (b_{P})_{I,j}^{*\ N}v_{I,j}^{*\ N+\frac{1}{2}} + (b_{WW})_{I,j}^{*\ N}v_{I-2,j}^{*\ N} + (b_{W})_{I,j}^{*\ N}v_{I-1,j}^{*\ N} + (b_{E})_{I,j}^{*\ N}v_{I+1,j}^{*\ N} + (b_{EE})_{I+2,j}^{*\ N}v_{I,j}^{*\ N} \\[1.5ex]
+    &\quad +(b_{SS})_{I,j}^{*\ N}v_{I,j-2}^{*\ N} + (b_{S})_{I,j}^{*\ N}v_{I,j-1}^{*\ N} + (b_{N})_{I,j}^{*\ N}v_{I,j+1}^{*\ N} + (b_{NN})_{I,j}^{*\ N}v_{I,j+2}^{*\ N} \\[1.5ex]
+    &\quad = {\color{red}-\frac{p_{I,J}^{*\ N} - p_{I,J-1}^{*\ N}}{\rho\delta y}}\delta x \delta y \quad \text{(...pre-discrete-y momentum equation)}\\[1.5ex]
+      &(3)\quad \left(\frac{\delta y\alpha_{u}}{{\color{red}\rho(a_{P})_{i+1,J}^{*\ N+\frac{1}{2}}}}+
+        \frac{\delta y\alpha_{u}}{{\color{red}\rho(a_{P})_{i,J}^{*\ N+\frac{1}{2}}}}+
+        \frac{\delta x\alpha_{v}}{{\color{red}\rho(b_{P})_{I,j+1}^{*\ N+\frac{1}{2}}}}+
+        \frac{\delta x\alpha_{v}}{{\color{red}\rho(b_{P})_{I,j}^{*\ N+\frac{1}{2}}}}\right)p_{I,J}^{\prime\ N+1}\\[1.5ex]
+    \quad  &=
+        \left(\frac{\delta x\alpha_{u}}{{\color{red}\rho(b_{P})_{I,j}^{*\ N+\frac{1}{2}}}}\right)p_{I,J-1}^{\prime\ N} + 
+        \left(\frac{\delta x\alpha_{u}}{{\color{red}\rho(b_{P})_{I,j+1}^{*\ N+\frac{1}{2}}}}\right)p_{I,J+1}^{\prime\ N} \ + 
+        \left(\frac{\delta y\alpha_{v}}{{\color{red}\rho(a_{P})_{i,J}^{*\ N+\frac{1}{2}}}}\right)p_{I-1,J}^{\prime\ N} + 
+        \left(\frac{\delta y\alpha_{v}}{{\color{red}\rho(a_{P})_{i+1,J}^{*\ N+\frac{1}{2}}}}\right)p_{I+1,J}^{\prime\ N} \\[1.5ex]
+    &\quad + {\color{blue}u_{i,J}^{*\ N+\frac{1}{2}} - u_{i+1,J}^{*\ N+\frac{1}{2}} + v_{I,j}^{*\ N+\frac{1}{2}} - v_{I,j+1}^{*\ N+\frac{1}{2}}} \quad \text{(...SIMPLE-discrete-continuity equation)}\\[1.5ex]
+    &(4)\  p_{I,J}^{N+1} = p_{I,J}^{ * N} + \alpha_{p} p_{I,J}^{\prime\ N+1}\quad \text{(...relaxtion-壓力場校正關係式)}\\[1.5ex]
+    &(5)\  {\color{blue}(a_{P})_{i,J}^{*\ N+\frac{1}{2}}}u_{i,J}^{\prime\ N+1} = {\color{red}\frac{p_{I,J}^{\prime\ N+1} - p_{I-1,J}^{\prime\ N+1}}{\rho\delta x}}\delta x\delta y \quad \text{(...SIMPLE-mod-discrete-x momentum equation)}\\[1.5ex]
+    &(6)\  {\color{blue}(b_{P})_{I,j}^{*\ N+\frac{1}{2}}}v_{I,j}^{\prime\ N+1} = {\color{red}\frac{p_{I,J}^{\prime\ N+1} - p_{I,J-1}^{\prime\ N+1}}{\rho\delta y}}\delta x\delta y \quad \text{(...SIMPLE-mod-discrete-y momentum equation)}\\[1.5ex]
+    &(7)\  u_{i,J}^{N+1} = \alpha_{u}\left(u_{i,J}^{\prime\ N+1} + u_{i,J}^{*\ N+\frac{1}{2}}\right) + (1-\alpha_{u}) u_{i,J}^{N} \quad \text{(...relaxation-x方向速度場校正關係式)}\\[1.5ex]
+    &(8)\  v_{I,j}^{N+1} = \alpha_{v}\left(v_{I,j}^{\prime\ N+1} + v_{I,j}^{*\ N+\frac{1}{2}}\right) + (1-\alpha_{v}) v_{I,j}^{N} \quad \text{(...relaxation-y方向速度場校正關係式)}\\[1.5ex]
+    &(9)\  A_{e}u_{i+1,J}^{*\ N+\frac{1}{2}} + A_{w}u_{i,J}^{*\ N+\frac{1}{2}}+A_{n}v_{I,j+1}^{*\ N+\frac{1}{2}} -A_{s}v_{I,j}^{*\ N+\frac{1}{2}} \overset{?}{=} 0\quad \text{(...pre-discrete-Continuity equation)}\\[1.5ex]
+    &(10)\ u_{i,J}^{N+1} = \alpha_{u}u_{i,J}^{GS\ N+1} + (1-\alpha_{u})u_{i,J}^{N} \quad \text{(...x方向速度場正確值鬆弛迭代關係式)}\\[1.5ex]
+    &(11)\ v_{I,j}^{N+1} = \alpha_{v}v_{I,j}^{GS\ N+1} + (1-\alpha_{v})v_{I,j}^{N} \quad \text{(...y方向速度場正確值鬆弛迭代關係式)}\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\newpage 
+\noindent 註記4: 引入以下四個方程式，將鬆弛迭代關係式另外寫，下方程組與式\eqref{eq:equvialent equations 3} 等效。\\
+\noindent 1.方程式：\\
+\noindent (F(y(A(R(d連續積分方程)的(一般離散格式))的(正確值形式))的(SIMPLE修正))的(鬆弛迭代改進))：
+\begin{equation}\begin{aligned}
+      &(3)\quad \left(\frac{\delta y\alpha_{u}}{{\color{red}\rho(a_{P})_{i+1,J}^{*\ N+\frac{1}{2}}}}+
+        \frac{\delta y\alpha_{u}}{{\color{red}\rho(a_{P})_{i,J}^{*\ N+\frac{1}{2}}}}+
+        \frac{\delta x\alpha_{v}}{{\color{red}\rho(b_{P})_{I,j+1}^{*\ N+\frac{1}{2}}}}+
+        \frac{\delta x\alpha_{v}}{{\color{red}\rho(b_{P})_{I,j}^{*\ N+\frac{1}{2}}}}\right)p_{I,J}^{\prime\ N+1}\\[1.5ex]
+    \quad  &=
+        \left(\frac{\delta x\alpha_{u}}{{\color{red}\rho(b_{P})_{I,j}^{*\ N+\frac{1}{2}}}}\right)p_{I,J-1}^{\prime\ N} + 
+        \left(\frac{\delta x\alpha_{u}}{{\color{red}\rho(b_{P})_{I,j+1}^{*\ N+\frac{1}{2}}}}\right)p_{I,J+1}^{\prime\ N} \ + 
+        \left(\frac{\delta y\alpha_{v}}{{\color{red}\rho(a_{P})_{i,J}^{*\ N+\frac{1}{2}}}}\right)p_{I-1,J}^{\prime\ N} + 
+        \left(\frac{\delta y\alpha_{v}}{{\color{red}\rho(a_{P})_{i+1,J}^{*\ N+\frac{1}{2}}}}\right)p_{I+1,J}^{\prime\ N} \\[1.5ex]
+    &\quad + {\color{blue}u_{i,J}^{*\ N+\frac{1}{2}} - u_{i+1,J}^{*\ N+\frac{1}{2}} + v_{I,j}^{*\ N+\frac{1}{2}} - v_{I,j+1}^{*\ N+\frac{1}{2}}} \quad \text{(...SIMPLE-discrete-continuity equation)}\\[1.5ex]
+\end{aligned}\end{equation}
+\noindent 2.方程式：\\
+\noindent (H(A壓力場校正關係式)的(鬆弛迭代改進))：
+\begin{equation}
+    (4)\  p_{I,J}^{N+1} = p_{I,J}^{ * N} + \alpha_{p} p_{I,J}^{\prime\ N+1}\quad \text{(...relaxtion-壓力場校正關係式)}\\
+\end{equation}
+\noindent 3.方程式：\\
+\noindent (F x分量速度場正確值鬆弛迭代關係式)：
+\begin{equation}
+    (10)\ u_{i,J}^{N+1} = \alpha_{u}u_{i,J}^{GS\ N+1} + (1-\alpha_{u})u_{i,J}^{N}
+\end{equation}
+\noindent 4.方程式：\\
+\noindent (D y分量速度場正確值鬆弛迭代關係式)：
+\begin{equation}
+    (11)\ v_{I,j}^{N+1} = \alpha_{v}v_{I,j}^{GS\ N+1} + (1-\alpha_{v})v_{I,j}^{N}
+\end{equation}
+\begin{equation}
+\label{eq:equvialent equations4}
+\left\{
+\begin{aligned}
+    &(1)\  (a_{P})_{i,J}^{*\ N}u_{i,J}^{*\ N+\frac{1}{2}} + (a_{WW})_{i,J}^{*\ N}u_{i-2,J}^{*\ N} + (a_{W})_{i,J}^{*\ N}u_{i-1,J}^{*\ N} + (a_{E})_{i+1,J}^{*\ N}u_{i+1,J}^{*\ N} + (a_{EE})_{i+2,J}^{*\ N}u_{i+2,J}^{*\ N} \\[1.5ex]
+    &\quad +(a_{SS})_{i,J}^{*\ N}u_{i,J-2}^{*\ N} + (a_{S})_{i,J}^{*\ N}u_{i,J-1}^{*\ N} + (a_{N})_{i,J}^{*\ N}u_{i,J+1}^{*\ N} + (a_{NN})_{i,J}^{*\ N}u_{i,J+2}^{*\ N} \\[1.5ex]
+    &\quad = {\color{red}-\frac{p_{I,J}^{*\ N} - p_{I-1,J}^{*\ N}}{\rho\delta x}}\delta x \delta y \quad \text{(...pre-discrete-x momentum equation)}\\[1.5ex]
+    &(2)\  (b_{P})_{I,j}^{*\ N}v_{I,j}^{*\ N+\frac{1}{2}} + (b_{WW})_{I,j}^{*\ N}v_{I-2,j}^{*\ N} + (b_{W})_{I,j}^{*\ N}v_{I-1,j}^{*\ N} + (b_{E})_{I,j}^{*\ N}v_{I+1,j}^{*\ N} + (b_{EE})_{I+2,j}^{*\ N}v_{I,j}^{*\ N} \\[1.5ex]
+    &\quad +(b_{SS})_{I,j}^{*\ N}v_{I,j-2}^{*\ N} + (b_{S})_{I,j}^{*\ N}v_{I,j-1}^{*\ N} + (b_{N})_{I,j}^{*\ N}v_{I,j+1}^{*\ N} + (b_{NN})_{I,j}^{*\ N}v_{I,j+2}^{*\ N} \\[1.5ex]
+    &\quad = {\color{red}-\frac{p_{I,J}^{*\ N} - p_{I,J-1}^{*\ N}}{\rho\delta y}}\delta x \delta y \quad \text{(...pre-discrete-y momentum equation)}\\[1.5ex]
+    &(3)\quad \left(\frac{\delta y\alpha_{u}}{{\color{red}\rho(a_{P})_{i+1,J}^{*\ N+\frac{1}{2}}}}+
+        \frac{\delta y\alpha_{u}}{{\color{red}\rho(a_{P})_{i,J}^{*\ N+\frac{1}{2}}}}+
+        \frac{\delta x\alpha_{v}}{{\color{red}\rho(b_{P})_{I,j+1}^{*\ N+\frac{1}{2}}}}+
+        \frac{\delta x\alpha_{v}}{{\color{red}\rho(b_{P})_{I,j}^{*\ N+\frac{1}{2}}}}\right)p_{I,J}^{\prime\ N+1}\\[1.5ex]
+    \quad  &=
+        \left(\frac{\delta x\alpha_{u}}{{\color{red}\rho(b_{P})_{I,j}^{*\ N+\frac{1}{2}}}}\right)p_{I,J-1}^{\prime\ N} + 
+        \left(\frac{\delta x\alpha_{u}}{{\color{red}\rho(b_{P})_{I,j+1}^{*\ N+\frac{1}{2}}}}\right)p_{I,J+1}^{\prime\ N} \ + 
+        \left(\frac{\delta y\alpha_{v}}{{\color{red}\rho(a_{P})_{i,J}^{*\ N+\frac{1}{2}}}}\right)p_{I-1,J}^{\prime\ N} + 
+        \left(\frac{\delta y\alpha_{v}}{{\color{red}\rho(a_{P})_{i+1,J}^{*\ N+\frac{1}{2}}}}\right)p_{I+1,J}^{\prime\ N} \\[1.5ex]
+    &\quad + {\color{blue}u_{i,J}^{*\ N+\frac{1}{2}} - u_{i+1,J}^{*\ N+\frac{1}{2}} + v_{I,j}^{*\ N+\frac{1}{2}} - v_{I,j+1}^{*\ N+\frac{1}{2}}} \quad \text{(...SIMPLE-discrete-continuity equation)}\\[1.5ex]
+    &(4)\  p_{I,J}^{N+1} = p_{I,J}^{ * N} + \alpha_{p} p_{I,J}^{\prime\ N+1}\quad \text{(...relaxtion-壓力場校正關係式)}\\[1.5ex]
+    &(5)\  {\color{blue}(a_{P})_{i,J}^{*\ N+\frac{1}{2}}}u_{i,J}^{\prime\ N+1} = {\color{red}\frac{p_{I,J}^{\prime\ N+1} - p_{I-1,J}^{\prime\ N+1}}{\rho\delta x}}\delta x\delta y \quad \text{(...SIMPLE-mod-discrete-x momentum equation)}\\[1.5ex]
+    &(6)\  {\color{blue}(b_{P})_{I,j}^{*\ N+\frac{1}{2}}}v_{I,j}^{\prime\ N+1} = {\color{red}\frac{p_{I,J}^{\prime\ N+1} - p_{I,J-1}^{\prime\ N+1}}{\rho\delta y}}\delta x\delta y \quad \text{(...SIMPLE-mod-discrete- y momentum equation)}\\[1.5ex]
+    &(7)\  u_{i,J}^{GS\ N+1} = u_{i,J}^{\prime\ N+1} + u_{i,J}^{*\ N+\frac{1}{2}}\quad \text{(...x方向速度場校正關係式)}\\[1.5ex]
+    &(8)\  v_{I,j}^{GS\ N+1} = v_{I,j}^{\prime\ N+1} + v_{I,j}^{*\ N+\frac{1}{2}}\quad \text{(...y方向速度場校正關係式)}\\[1.5ex]
+    &(9)\  A_{e}u_{i+1,J}^{*\ N+\frac{1}{2}} + A_{w}u_{i,J}^{*\ N+\frac{1}{2}}+A_{n}v_{I,j+1}^{*\ N+\frac{1}{2}} -A_{s}v_{I,j}^{*\ N+\frac{1}{2}} \overset{?}{=} 0\quad \text{(...pre-discrete-Continuity equation)}\\[1.5ex]
+    &(10)\ u_{i,J}^{N+1} = \alpha_{u}u_{i,J}^{GS\ N+1} + (1-\alpha_{u})u_{i,J}^{N} \quad \text{(...x方向速度場正確值鬆弛迭代關係式)}\\[1.5ex]
+    &(11)\ v_{I,j}^{N+1} = \alpha_{v}v_{I,j}^{GS\ N+1} + (1-\alpha_{v})v_{I,j}^{N} \quad \text{(...y方向速度場正確值鬆弛迭代關係式)}\\[1.5ex]
+\end{aligned}
+\right.
+\end{equation}
+\end{document}
+
