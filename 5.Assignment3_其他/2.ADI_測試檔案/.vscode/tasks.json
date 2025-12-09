@@ -1,0 +1,29 @@
+{
+// ✅ macOS OpenMP clang 編譯設定
+"version": "2.0.0",
+"tasks": [
+{
+"type": "cppbuild",
+"label": "C/C++: clang++ build (OpenMP macOS)",
+"command": "/opt/homebrew/opt/llvm/bin/clang++",
+"args": [
+"-std=c++17",
+"-fopenmp",
+"${file}",
+"-o", "${fileDirname}/${fileBasenameNoExtension}",
+"-I/opt/homebrew/opt/libomp/include",
+"-L/opt/homebrew/opt/libomp/lib",
+"-lomp"
+],
+"options": {
+"cwd": "${fileDirname}"
+},
+"problemMatcher": ["$gcc"],
+"group": {
+"kind": "build",
+"isDefault": true
+},
+"detail": "macOS clang++ with OpenMP"
+}
+]
+}

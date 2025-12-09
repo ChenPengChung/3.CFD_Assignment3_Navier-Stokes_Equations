@@ -1,0 +1,39 @@
+{
+    "latex-workshop.latex.tools": [
+        {
+            "name": "xelatex",
+            "command": "xelatex",
+            "args": [
+                "-synctex=1",
+                "-interaction=nonstopmode",
+                "-file-line-error",
+                "%DOC%"
+            ]
+        }
+    ],
+    "latex-workshop.latex.recipes": [
+        {
+            "name": "XeLaTeX",
+            "tools": ["xelatex"]
+        }
+    ],
+    "latex-workshop.latex.autoBuild.run": "onSave",
+    "latex-workshop.latex.recipe.default": "XeLaTeX",
+    "files.associations": {
+        "string": "cpp",
+        "iostream": "cpp",
+        "__locale": "cpp",
+        "vector": "cpp",
+        "variant": "cpp",
+        "fstream": "cpp",
+        "ios": "cpp",
+        "sstream": "cpp",
+        "iomanip": "cpp",
+        "ostream": "cpp",
+        "cstdlib": "cpp",
+        "iosfwd": "cpp",
+        "cmath": "cpp",
+        "random": "cpp"
+    },
+    "git.ignoreLimitWarning": true
+}
