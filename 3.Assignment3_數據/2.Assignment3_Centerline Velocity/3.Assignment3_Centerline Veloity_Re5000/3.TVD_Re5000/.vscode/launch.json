@@ -1,0 +1,15 @@
+{
+"version": "0.2.0",
+"configurations": [
+{
+"name": "Debug OpenMP Program",
+"type": "lldb",
+"request": "launch",
+"program": "${fileDirname}/${fileBasenameNoExtension}",
+"args": [],
+"cwd": "${fileDirname}",
+"stopAtEntry": false,
+"preLaunchTask": "C/C++: clang++ build (OpenMP macOS)"
+}
+]
+}
