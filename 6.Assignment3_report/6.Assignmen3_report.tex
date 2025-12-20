@@ -18,10 +18,9 @@
 \usepackage{caption} % Caption customization
 \usepackage{tabularx} % Extended table functionality
 \usepackage{booktabs} % Professional tables
-\usepackage{titlesec} % Section formatting
+\usepackage{titlesec}% Section formatting
 \usepackage{hyperref} % Hyperlinks and references
 \usepackage{subcaption}
-\usepackage{animate} % Animation support
 \usepackage[numbers]{natbib} % Bibliography management with numerical citations
 \usepackage{listings} % Code listing
 \usepackage{extarrows}
@@ -49,7 +48,7 @@
     \fi
   }%
 }
-% 頁尾頁碼
+% �������X
 \fancyfoot[C]{\thepage}
 
 \setlength{\headheight}{28pt}
@@ -108,12 +107,12 @@
   {0pt}{\bfseries}{.}{0.5em}{}
 
 % 6. Define theorem environments
-\theoremstyle{plain}  % 定理、引理用斜體
+\theoremstyle{plain}  % �w�z�B�޲z�α���
 \newtheorem{theorem}{Theorem}[section]  
 \newtheorem{lemma}{Lemma}[section]
 \newtheorem{corollary}{Corollary}[section]
 
-\theoremstyle{definition}  % 定義、例子、註解用正體
+\theoremstyle{definition}  % �w�q�B�Ҥl�B���ѥΥ���
 \newtheorem{definition}{Definition}[section]
 \newtheorem{example}{Example}[section]
 \newtheorem{remark}{Remark}[section]
@@ -157,11 +156,6 @@
     bookmarksnumbered=true
 }
 
-% 11. Animation toggle switch
-% Set to \showanimationtrue when finalizing, \showanimationfalse for faster compilation
-\newif\ifshowanimation
-\showanimationfalse  % Change to \showanimationtrue when ready to include animations
-
 % 12. Title settings
 \setlength{\droptitle}{-0.5in} % Adjust title position
 \title{CFD Assignment 3 : Lid-Driven Cavity Flow}
@@ -182,41 +176,22 @@ I have used four types of methods to solve this classic problem. Corresponding t
   \item \ref{subsec:code6}: FVM Deferred Correction\\
    I would like to describe this problem from the figure below \ref{fig:deferred correction}. When I tried to compute at Re = 5000 with non-deferred correction FVM code \ref{subsec:code5}, I found that whatever how I reduce the relaxation factor, I still can't get the appropriate iteration process, even only one converged solution at all. 
    The solving method I took is that changed the structure of the discrete equation of momentum equations, i.e., moving the anti-diffusion term to the source term, and meaning is using old value to substitute those terms, leading to elements of coefficient matrix maintain the Convection Boundedness Criterion(CBC) condition.  
-\ifshowanimation
 \begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.49\textwidth}
         \centering
-        \animategraphics[loop,controls,width=\textwidth]{10}{}{1}{37}
-        \caption{}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.49\textwidth}
-        \centering
-        \animategraphics[loop,controls,width=\textwidth]{10}{}{38}{75}
-        \caption{}
-    \end{subfigure}
-    \caption{Lid-driven cavity flow at $Re = 5000$ on $81 \times 81$ grid. Comparison of (a) non-deferred and (b) deferred correction schemes. The deferred correction technique maintains the Convection Boundedness Criterion (CBC) and ensures convergence. (Click animation to play in Adobe Acrobat Reader)}
-    \label{fig:cavity_animation_split}
-\end{figure}
-\else
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}[b]{0.49\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{37.png}
+        \includegraphics[width=\textwidth]{37.jpg}
         \caption{Non-deferred correction failure (Re = 5000)}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.49\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{75.png}
+        \includegraphics[width=\textwidth]{75.jpg}
         \caption{Deferred correction success (Re = 5000)}
     \end{subfigure}
     \caption{Comparison of correction methods for Lid-Driven Cavity Flow}
     \label{fig:cavity_comparison}
 \end{figure}
-\fi
     \item \ref{subsec:code7}: FVM Deferred Correction with ADI+TDMA\\
 The last problem is about how can I reduce the computational time, furthermore, choosing the most appropriate relaxation factor set including factors of momentum equations and pressure factor in SIMPLE algorithm. When I was just using Gauss-Seidel method to solve the pressure correction equation, I had to wait for the converged iteration final for 3 days, and when I took the ADI (Alternating-Direction Implicit technique) to rearrange the discrete form of the momentum equation and pressure Poisson equation, the time I used reduced to 10 minutes. 
     \item Relaxation factor settings\\
@@ -229,30 +204,11 @@ The last problem is about how can I reduce the computational time, furthermore, 
 \end{enumerate}
 \section{Problem Descriptions}
 
-% === Lid-Driven Cavity Flow Animation ===
-\ifshowanimation
 \begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.51\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{Problem.png}
-        \caption{Problem Description (Re = 100)}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.47\textwidth}
-        \centering
-        \animategraphics[loop,controls,width=0.9\textwidth]{10}{ezgif-frame-}{001}{051}
-        \caption{Lid-Driven Cavity Animation  (Re = 5000)}
-    \end{subfigure}
-    \caption{Lid-Driven Cavity Flow Problem and Simulation (Click animation to play in Adobe Acrobat Reader)}
-    \label{fig:cavity_animation}
-\end{figure}
-\else
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}[b]{0.51\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{Problem.png}
+        \includegraphics[width=\textwidth]{Problem.jpg}
         \caption{Problem Description (Re = 100)}
     \end{subfigure}
     \hfill
@@ -261,9 +217,8 @@ The last problem is about how can I reduce the computational time, furthermore, 
         \includegraphics[width=\textwidth]{ezgif-frame-025.jpg}
         \caption{Simulation Result (Re = 5000)}
     \end{subfigure}
-    \caption{Lid-Driven Cavity Flow Problem and Simulation (Animation disabled for faster compilation)}
+    \caption{Lid-Driven Cavity Flow Problem and Simulation}
 \end{figure}
-\fi
 
 
 \noindent Lid Driven Cavity Flow can be controlled by Navier-Stokes Equation, and continuity equation. Writing down the conservation form of Navier-Stokes Equations below: 
@@ -322,13 +277,13 @@ and I will show the analysis below to answer these problems.
     \centering
     \begin{minipage}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{76.png}
+        \includegraphics[width=\textwidth]{76.jpg}
         \\[0.5ex]
         \caption{\footnotesize definition of primary point and vice point} 
     \end{minipage}\hfill
     \begin{minipage}[b]{0.48\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{77.png}
+        \includegraphics[width=\textwidth]{77.jpg}
         \\[0.5ex]
         \caption{\footnotesize control volume center setting}
     \end{minipage}
@@ -353,13 +308,13 @@ we give an initial pressure predicted value at first, and solve the predicted fo
     \centering
     \begin{minipage}[b]{0.38\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{78.png}
+        \includegraphics[width=\textwidth]{78.jpg}
         \\[0.5ex]
         {\footnotesize (a) coupling correction relationship} 
     \end{minipage}\hspace{5em}
     \begin{minipage}[b]{0.35\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{79.png}
+        \includegraphics[width=\textwidth]{79.jpg}
         \\[0.5ex]
         {\footnotesize (b) checkerboard pressure field}
     \end{minipage}
@@ -389,7 +344,7 @@ So this is the reason why we must use staggered grid setting, because we have to
 Furthermore, because we adopted the staggered grids setting, the variables $v_{n}, v_{s}$ stored at the north and south side of the control volume, and variables $u_{e} , u_{w}$ also stored at the east and west side.
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.7\textwidth]{81.png}
+  \includegraphics[width=0.7\textwidth]{81.jpg}
   \caption{linear combination coefficients of the discrete Continuity Equation}
   \label{fig:discrete_continuity_equation}
 \end{figure}
@@ -414,7 +369,7 @@ where $\Omega$ is the control volume, and $\partial \Omega$ is the close surface
 \end{itemize}
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.7\textwidth]{82.png}
+  \includegraphics[width=0.7\textwidth]{82.jpg}
   \caption{coefficients of the general discrete form of the x-momentum integration equation}
   \label{fig:discrete_x_momentum_equation}
 \end{figure}
@@ -481,7 +436,7 @@ For discretizing the equation \eqref{eq:x-momentum_integration_equation}, we sta
 \vspace{-0.5em}
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.3\textwidth]{83.png}
+  \includegraphics[width=0.3\textwidth]{83.jpg}
   \caption{\footnotesize combination coefficients of TVD-MUSCL scheme approximation}
   \label{fig:TVD_MUSCL}
 \end{figure}
@@ -517,7 +472,7 @@ a_{NN} &= ((1-\alpha_{n})\frac{-1}{8})F_{n}^{u} + 0
 \noindent As the figure shown : 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{84.png}
+    \includegraphics[width=\textwidth]{84.jpg}
     \caption{\footnotesize coefficients setting of QUICK scheme}
     \label{fig:QUICK_scheme}
 \end{figure}
@@ -543,7 +498,7 @@ a_{NN} &= ((1-\alpha_{n})UU(r_{n}))F_{n}^{u} + 0 \\[1.5ex]
 \noindent As the figure shown : 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{85.png}
+    \includegraphics[width=\textwidth]{85.jpg}
     \caption{\footnotesize coefficients setting of TVD-MUSCL scheme}
     \label{fig:TVD_MUSCL_scheme}
 \end{figure}
@@ -643,8 +598,152 @@ We set the variables into two parts, i.e., predicted value and correction value.
 First, given the pressure predicted value $p_{I,J}^{\star}$, we can obtain the corresponding velocity predicted value. 
 Second, use the velocity I get to go back solve the presswure corection and correct the pressure in the next step.
 so in this algorithm, we can find a thing is pressure and velocity are corrected in an iterative way using predicted value and correction value.
-\subsubsection{Patankar's Omission in SIMPLE Algorithm}
+
+\subsubsection{Algorithmic Steps and Under-Relaxation}
+\noindent This subsection presents a textbook-level SIMPLE description. At iteration $N$, the velocity and pressure fields are decomposed into predicted and correction parts. The predicted fields are obtained from the momentum equations using the predicted pressure $p^{\star}$, and the continuity residual of the predicted field drives the pressure-correction equation.
+
+\noindent \textbf{Under-relaxation in the predicted momentum equations.} The momentum equations are linearized as $a_P \phi_P = \sum_{nb} a_{nb}\phi_{nb} + b$. To stabilize the nonlinear coupling, under-relaxation is applied to the predicted velocities. This is achieved by scaling the diagonal coefficient and adding a compensation term to the source. For the staggered grid used in this report, the predicted momentum equations are:
+\begin{equation}\label{eq:simple_predicted_mom}
+\begin{aligned}
+\frac{(a_{P})_{i,J}^{\star N}}{\alpha_u}u_{i,J}^{\star\,N+\frac{1}{2}} &= \sum_{nb} (a_{nb})_{i,J}^{\star N}u_{nb}^{\star N}
+- \frac{p_{I,J}^{\star N}-p_{I-1,J}^{\star N}}{\rho\,\delta x}\,\delta x\,\delta y
++ \frac{1-\alpha_u}{\alpha_u}(a_{P})_{i,J}^{\star N}u_{i,J}^{N} \\
+\frac{(b_{P})_{I,j}^{\star N}}{\alpha_v}v_{I,j}^{\star\,N+\frac{1}{2}} &= \sum_{nb} (b_{nb})_{I,j}^{\star N}v_{nb}^{\star N}
+- \frac{p_{I,J}^{\star N}-p_{I,J-1}^{\star N}}{\rho\,\delta y}\,\delta x\,\delta y
++ \frac{1-\alpha_v}{\alpha_v}(b_{P})_{I,j}^{\star N}v_{I,j}^{N}
+\end{aligned}
+\end{equation}
+\noindent where $\alpha_u$ and $\alpha_v$ are the relaxation factors for the predicted velocities. The added source terms ensure consistency with the original momentum equations while damping the update.
+
+\noindent \textbf{Continuity residual and pressure correction.} The predicted velocity field generally violates continuity; therefore the discrete continuity residual
+\begin{equation}\label{eq:simple_residual}
+ d_{I,J}^{\star N} = A_{e}u_{i+1,J}^{\star\,N+\frac{1}{2}} - A_{w}u_{i,J}^{\star\,N+\frac{1}{2}} + A_{n}v_{I,j+1}^{\star\,N+\frac{1}{2}} - A_{s}v_{I,j}^{\star\,N+\frac{1}{2}}
+\end{equation}
+\noindent is used as the source term of the pressure-correction equation (derived in the next subsection). Once $p^{\prime}$ is solved, pressure is still under-relaxed, while velocities are corrected by the standard SIMPLE relations:
+\begin{equation}\label{eq:simple_updates}
+\begin{aligned}
+ p_{I,J}^{N+1} &= p_{I,J}^{N} + \alpha_{p} p_{I,J}^{\prime\,N+1} \\
+ u_{i,J}^{N+1} &= u_{i,J}^{\star\,N+\frac{1}{2}} + u_{i,J}^{\prime\,N+1} \\
+ v_{I,j}^{N+1} &= v_{I,j}^{\star\,N+\frac{1}{2}} + v_{I,j}^{\prime\,N+1}
+\end{aligned}
+\end{equation}
+\noindent where $\alpha_{u}$ and $\alpha_{v}$ are used in the predicted momentum equations \eqref{eq:simple_predicted_mom}, while $\alpha_{p}$ is applied to the pressure update in \eqref{eq:simple_updates} to stabilize the iteration.
+
+\noindent \textbf{Algorithmic loop.} The SIMPLE iteration used in this report can be summarized as:
+\begin{enumerate}
+\item Solve predicted momentum equations with $p^{\star}$ to obtain $u^{\star}$ and $v^{\star}$.
+\item Assemble and solve the pressure-correction equation using the continuity residual of $u^{\star}, v^{\star}$ (equation \eqref{eq:simple_residual}).
+\item Correct pressure and velocities with equations \eqref{eq:simple_updates}.
+\item Check continuity; if residual is above tolerance, set $p^{\star} \leftarrow p^{N+1}$, $u^{\star} \leftarrow u^{N+1}$, $v^{\star} \leftarrow v^{N+1}$ and repeat.
+\end{enumerate}
+
+\subsubsection{Staggered Grid and Pressure-Velocity Coupling}
+\noindent The SIMPLE algorithm is typically implemented on a staggered grid to avoid the checkerboard pressure field. Pressure is stored at cell centers, while velocity components are stored at the corresponding cell faces. This arrangement ensures that the pressure gradient in the momentum equations and the mass flux in the continuity equation are evaluated at consistent locations, providing a stable and physically meaningful pressure--velocity coupling.
+
+\subsubsection{Continuity Residual and Convergence Criterion}
+\noindent The pressure-correction equation is driven by the continuity residual computed from the predicted velocity field. A practical convergence criterion is to monitor the normalized residual:
+\begin{equation}
+R_m = \frac{\sum_{I,J} \left| d_{I,J}^{\star N} \right|}{\sum_{I,J} \left( A_e + A_w + A_n + A_s \right)}
+\end{equation}
+\noindent The iteration is considered converged when $R_m$ falls below a prescribed tolerance (e.g., $10^{-6}$) and the corrections $p^{\prime}$, $u^{\prime}$, $v^{\prime}$ become negligibly small. This criterion ensures global mass conservation.
+
+\subsubsection{Boundary Conditions for Pressure Correction}
+\noindent The pressure correction $p^{\prime}$ must be assigned boundary conditions consistent with the velocity boundary conditions. For no-penetration walls, the normal velocity correction is zero, which leads to a homogeneous Neumann condition for pressure correction:
+\begin{equation}
+\frac{\partial p^{\prime}}{\partial n} = 0 \quad \text{on solid walls.}
+\end{equation}
+\noindent One reference pressure point is usually fixed to remove the null space of the Poisson operator.
+
+\subsubsection{SIMPLE vs. SIMPLEC}
+\noindent SIMPLEC modifies the velocity-correction relation by partially retaining the neighbor correction terms omitted in SIMPLE, which effectively increases the coupling between pressure and velocity. This leads to a stronger correction and typically faster convergence, but it may require smaller relaxation factors for stability. The present report follows the standard SIMPLE formulation for clarity and robustness.
+\subsection{Patankar��s Omission in SIMPLE Algorithm}
+\noindent To derive the velocity correction equation from the momentum equation, we start with the predicted form and the corrected form of the discrete x-momentum equation. Subtracting the predicted form from the corrected form yields the momentum correction equation:
+\begin{equation}\label{eq:mom_correction_full}
+\begin{aligned}
+a_{P}u_{P}^{\prime} &+ a_{WW}u_{WW}^{\prime} + a_{W}u_{W}^{\prime} + a_{E}u_{E}^{\prime} + a_{EE}u_{EE}^{\prime}\\
+&+ a_{SS}u_{SS}^{\prime} + a_{S}u_{S}^{\prime} + a_{N}u_{N}^{\prime} + a_{NN}u_{NN}^{\prime}\\
+&= -\frac{1}{\rho}\frac{(p_{P}^{\prime} - p_{w}^{\prime})}{\delta x} \delta x \delta y
+\end{aligned}
+\end{equation}
+\noindent where the superscript $\prime$ denotes the correction value. Equation \eqref{eq:mom_correction_full} represents the exact correction relationship. However, solving this equation is computationally expensive because it couples the velocity correction at all neighboring nodes.
+
+\noindent {\color{red}\textbf{Patankar's Simplification:}}
+To reduce computational cost, Patankar proposed to \textit{omit the neighboring velocity correction terms} on the left-hand side of equation \eqref{eq:mom_correction_full}. This simplification yields:
+\begin{equation}\label{eq:patankar_omission}
+a_{P}u_{P}^{\prime} \approx -\frac{1}{\rho}\frac{(p_{P}^{\prime} - p_{w}^{\prime})}{\delta x} \delta x \delta y
+\end{equation}
+\noindent Solving for the velocity correction $u_{P}^{\prime}$:
+\begin{equation}\label{eq:u_correction_simplified}
+\boxed{u_{P}^{\prime} = -\frac{\delta y}{\rho \, a_{P}}(p_{P}^{\prime} - p_{w}^{\prime})}
+\end{equation}
+\noindent This simplified form has a clear physical interpretation: the velocity correction is proportional to the pressure correction gradient. The key advantages of Patankar's omission are:
+\begin{enumerate}
+\item \textbf{Computational efficiency}: The velocity correction can be calculated explicitly from the pressure correction without requiring iterative solution of coupled equations.
+\item \textbf{Algorithm simplicity}: The decoupling allows for a sequential solution procedure in the SIMPLE algorithm.
+\item \textbf{Convergence behavior}: Although the omission introduces approximation error, the iterative nature of SIMPLE algorithm compensates for this error through successive corrections.
+\end{enumerate}
+
+\noindent {\color{blue}\textbf{Remark:}}
+The omitted terms $(a_{WW}u_{WW}^{\prime} + a_{W}u_{W}^{\prime} + \cdots)$ are recovered through the iterative process. As the solution converges, both $u^{\prime} \to 0$ and $p^{\prime} \to 0$, making the omission exact at convergence. This is why SIMPLE is called a \textit{Semi-Implicit} method�Xthe pressure-velocity coupling is only partially implicit.
+
 \subsubsection{Derivatation of Pressure Correction Equation}
+\noindent The pressure correction equation, also known as the pressure Poisson equation, is derived by enforcing the continuity equation on the corrected velocity field. Starting from the discrete continuity equation \eqref{eq:general_C_E} at the primary control volume centered at $(I,J)$:
+\begin{equation}\label{eq:continuity_corrected}
+A_{e}u_{i+1,J} - A_{w}u_{i,J} + A_{n}v_{I,j+1} - A_{s}v_{I,j} = 0
+\end{equation}
+
+
+\noindent {\color{blue}\textbf{Step 1: Decompose velocities into predicted and correction parts}}
+
+\noindent Substitute the predicted-correction decomposition $u = u^{\star} + u^{\prime}$ and $v = v^{\star} + v^{\prime}$ into equation \eqref{eq:continuity_corrected}:
+\begin{equation}\label{eq:continuity_decomposed}
+\begin{aligned}
+&A_{e}(u_{i+1,J}^{\star} + u_{i+1,J}^{\prime}) - A_{w}(u_{i,J}^{\star} + u_{i,J}^{\prime})\\
+&\quad + A_{n}(v_{I,j+1}^{\star} + v_{I,j+1}^{\prime}) - A_{s}(v_{I,j}^{\star} + v_{I,j}^{\prime}) = 0
+\end{aligned}
+\end{equation}
+
+\noindent Rearranging to separate predicted and correction terms:
+\begin{equation}\label{eq:continuity_separated}
+\underbrace{(A_{e}u_{i+1,J}^{\star} - A_{w}u_{i,J}^{\star} + A_{n}v_{I,j+1}^{\star} - A_{s}v_{I,j}^{\star})}_{\text{mass flux imbalance from predicted velocity}} + \underbrace{(A_{e}u_{i+1,J}^{\prime} - A_{w}u_{i,J}^{\prime} + A_{n}v_{I,j+1}^{\prime} - A_{s}v_{I,j}^{\prime})}_{\text{correction to satisfy continuity}} = 0
+\end{equation}
+
+\noindent {\color{blue}\textbf{Step 2: Substitute Patankar's velocity correction formula}}
+
+\noindent From equation \eqref{eq:u_correction_simplified}, the velocity corrections are:
+\begin{equation}\label{eq:velocity_corrections}
+\begin{aligned}
+u_{i,J}^{\prime} &= -\frac{\delta y}{\rho \, (a_{P})_{i,J}}(p_{I,J}^{\prime} - p_{I-1,J}^{\prime})\\[1ex]
+u_{i+1,J}^{\prime} &= -\frac{\delta y}{\rho \, (a_{P})_{i+1,J}}(p_{I+1,J}^{\prime} - p_{I,J}^{\prime})\\[1ex]
+v_{I,j}^{\prime} &= -\frac{\delta x}{\rho \, (b_{P})_{I,j}}(p_{I,J}^{\prime} - p_{I,J-1}^{\prime})\\[1ex]
+v_{I,j+1}^{\prime} &= -\frac{\delta x}{\rho \, (b_{P})_{I,j+1}}(p_{I,J+1}^{\prime} - p_{I,J}^{\prime})
+\end{aligned}
+\end{equation}
+where $(a_{P})_{i,J}$ denotes the diagonal coefficient for x-momentum at location $(i,J)$, and $(b_{P})_{I,j}$ denotes the diagonal coefficient for y-momentum at location $(I,j)$.
+
+\noindent {\color{blue}\textbf{Step 3: Assemble the pressure correction equation}}
+
+\noindent Substituting equations \eqref{eq:velocity_corrections} into the correction part of equation \eqref{eq:continuity_separated}:
+\begin{equation}\label{eq:pressure_poisson}
+\begin{aligned}
+&\left(\frac{\delta y}{\rho(a_P)_{i+1,J}} + \frac{\delta y}{\rho(a_P)_{i,J}} + \frac{\delta x}{\rho(b_P)_{I,j+1}} + \frac{\delta x}{\rho(b_P)_{I,j}}\right) p_{I,J}^{\prime}\\[1ex]
+&\quad - \frac{\delta y}{\rho(a_P)_{i,J}} p_{I-1,J}^{\prime} - \frac{\delta y}{\rho(a_P)_{i+1,J}} p_{I+1,J}^{\prime}\\[1ex]
+&\quad - \frac{\delta x}{\rho(b_P)_{I,j}} p_{I,J-1}^{\prime} - \frac{\delta x}{\rho(b_P)_{I,j+1}} p_{I,J+1}^{\prime}\\[1ex]
+&= \underbrace{-(A_{e}u_{i+1,J}^{\star} - A_{w}u_{i,J}^{\star} + A_{n}v_{I,j+1}^{\star} - A_{s}v_{I,j}^{\star})}_{\text{source term: negative of mass flux imbalance}}
+\end{aligned}
+\end{equation}
+
+\noindent This is a \textbf{Poisson equation} for the pressure correction $p^{\prime}$. The source term on the right-hand side represents the mass flux imbalance computed from the predicted velocity field. The pressure correction field is solved to eliminate this imbalance and enforce mass conservation.
+
+\noindent {\color{red}\textbf{Physical Interpretation:}}
+\begin{itemize}
+\item When the predicted velocity satisfies continuity (i.e., source term $= 0$), the pressure correction $p^{\prime}$ becomes zero.
+\item A positive source term (net outflow) indicates that pressure needs to decrease, driving fluid into the control volume.
+\item The Laplacian structure of the left-hand side ensures that pressure adjustments propagate throughout the domain to satisfy global mass conservation.
+\end{itemize}
+
+\noindent The detailed algebraic form of this equation is presented in Appendix \ref{app:simple_algebraic}, equation \eqref{eq:eq2}.
+
 \newpage
 \section{Results and Discussion}
 \subsection{Vortex Structure Preview}
@@ -653,13 +752,13 @@ so in this algorithm, we can find a thing is pressure and velocity are corrected
 \centering
 \begin{subfigure}[b]{0.48\textwidth}
   \centering
-  \includegraphics[width=\textwidth]{P_1.png}
+  \includegraphics[width=\textwidth]{P_1.jpg}
   \caption{}
   \label{fig:Preview_1}
 \end{subfigure}\hfill
 \begin{subfigure}[b]{0.48\textwidth}
   \centering
-  \includegraphics[width=\textwidth]{P_2.png}
+  \includegraphics[width=\textwidth]{P_2.jpg}
   \caption{}
   \label{fig:Preview_2}
 \end{subfigure}
@@ -669,7 +768,7 @@ so in this algorithm, we can find a thing is pressure and velocity are corrected
 \noindent As the figure \ref{fig:vortex_preview} shown, we can see the fact that when Re number increases form 100 to 1000, despite of moving to the center of the domain for primary vortex, two second vortex structure at bottom-left corner and botto-right corner is gradually growing.
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.8\textwidth]{P_3.png}
+  \includegraphics[width=0.8\textwidth]{P_3.jpg}
   \caption{Vortex structure at Re = 5000}
   \label{fig:Preview_3}
 \end{figure}
@@ -678,13 +777,13 @@ so in this algorithm, we can find a thing is pressure and velocity are corrected
 ,and(4)light-blue domain is the second vortex at bottom-right corner of the flow field.
 \newpage
 \subsection{Streamline Plots}
-\noindent This section presents streamline patterns for three numerical schemes (Central Difference Scheme, QUICK, and TVD-MUSCL) across different Reynolds numbers (Re = 100, 1000, 5000) and grid resolutions (81×81 and 161×161).
+\noindent This section presents streamline patterns for three numerical schemes (Central Difference Scheme, QUICK, and TVD-MUSCL) across different Reynolds numbers (Re = 100, 1000, 5000) and grid resolutions (81��81 and 161��161).
 \subsubsection{Arrangement of Streamline Patterns}
-\noindent The below figure shows the arrangement method of my streamline plots results, split them into 81×81 and 161×161 parts at first, and separate figures into three parts based on 3 types of Re numbers. 
+\noindent The below figure shows the arrangement method of my streamline plots results, split them into 81��81 and 161��161 parts at first, and separate figures into three parts based on 3 types of Re numbers. 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.8\textwidth]{Arrangement1.jpeg}
-  \caption{Arrangement method of streamline plots: organized by grid resolution (81×81 and 161×161) and Reynolds number (Re = 100, 1000, 5000).}
+  \caption{Arrangement method of streamline plots: organized by grid resolution (81��81 and 161��161) and Reynolds number (Re = 100, 1000, 5000).}
   \label{fig:arrangement}
 \end{figure}
 
@@ -692,30 +791,30 @@ so in this algorithm, we can find a thing is pressure and velocity are corrected
 \begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{S_1_1_1.png}
+        \includegraphics[width=\textwidth]{S_1_1_1.jpg}
         \caption{}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{S_1_1_2.png}
+        \includegraphics[width=\textwidth]{S_1_1_2.jpg}
         \caption{}
     \end{subfigure}\\[0.5ex]
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{S_1_2_1.png}
+        \includegraphics[width=\textwidth]{S_1_2_1.jpg}
         \caption{}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{S_1_2_2.png}
+        \includegraphics[width=\textwidth]{S_1_2_2.jpg}
         \caption{}
     \end{subfigure}\\[0.5ex]
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{S_1_3_1.png}
+        \includegraphics[width=\textwidth]{S_1_3_1.jpg}
         \caption{}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{S_1_3_2.png}
+        \includegraphics[width=\textwidth]{S_1_3_2.jpg}
         \caption{}
     \end{subfigure}
     \caption{Streamline patterns for lid-driven cavity flow computed using central difference scheme. 
@@ -728,30 +827,30 @@ so in this algorithm, we can find a thing is pressure and velocity are corrected
 \begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{S_2_1_1.png}
+        \includegraphics[width=\textwidth]{S_2_1_1.jpg}
         \caption{}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{S_2_1_2.png}
+        \includegraphics[width=\textwidth]{S_2_1_2.jpg}
         \caption{}
     \end{subfigure}\\[0.5ex]
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{S_2_2_1.png}
+        \includegraphics[width=\textwidth]{S_2_2_1.jpg}
         \caption{}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{S_2_2_2.png}
+        \includegraphics[width=\textwidth]{S_2_2_2.jpg}
         \caption{}
     \end{subfigure}\\[0.5ex]
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{S_2_3_1.png}
+        \includegraphics[width=\textwidth]{S_2_3_1.jpg}
         \caption{}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{S_2_3_2.png}
+        \includegraphics[width=\textwidth]{S_2_3_2.jpg}
         \caption{}
     \end{subfigure}
     \caption{Streamline patterns for lid-driven cavity flow computed using QUICK scheme. 
@@ -764,30 +863,30 @@ so in this algorithm, we can find a thing is pressure and velocity are corrected
 \begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{S_3_1_1.png}
+        \includegraphics[width=\textwidth]{S_3_1_1.jpg}
         \caption{}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{S_3_1_2.png}
+        \includegraphics[width=\textwidth]{S_3_1_2.jpg}
         \caption{}
     \end{subfigure}\\[0.5ex]
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{S_3_2_1.png}
+        \includegraphics[width=\textwidth]{S_3_2_1.jpg}
         \caption{}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{S_3_2_2.png}
+        \includegraphics[width=\textwidth]{S_3_2_2.jpg}
         \caption{}
     \end{subfigure}\\[0.5ex]
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{S_3_3_1.png}
+        \includegraphics[width=\textwidth]{S_3_3_1.jpg}
         \caption{}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{S_3_3_2.png}
+        \includegraphics[width=\textwidth]{S_3_3_2.jpg}
         \caption{}
     \end{subfigure}
     \caption{Streamline patterns for lid-driven cavity flow computed using TVD-MUSCL scheme.
@@ -800,41 +899,41 @@ so in this algorithm, we can find a thing is pressure and velocity are corrected
 \noindent This section presents velocity magnitude contour plots for the same three numerical schemes across different Reynolds numbers and grid resolutions.
 \subsubsection{Arrangement of Velocity Magnitude Contours}
 \noindent The below figure shows the arrangement method of my velocity magnitude contour plots results,
-split them into 81×81 and 161×161 parts at first, and separate figures into three parts based on 3 types of Re numbers. 
+split them into 81��81 and 161��161 parts at first, and separate figures into three parts based on 3 types of Re numbers. 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.8\textwidth]{Arrangement2.jpeg}
-  \caption{Arrangement method of velocity magnitude contours: organized by grid resolution (81×81 and 161×161) and Reynolds number (Re = 100, 1000, 5000).}
+  \caption{Arrangement method of velocity magnitude contours: organized by grid resolution (81��81 and 161��161) and Reynolds number (Re = 100, 1000, 5000).}
   \label{fig:arrangement2}
 \end{figure}
 \subsubsection{Central Difference Scheme (CDs)}
 \begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{C_1_1_1.png}
+        \includegraphics[width=\textwidth]{C_1_1_1.jpg}
         \caption{}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{C_1_1_2.png}
+        \includegraphics[width=\textwidth]{C_1_1_2.jpg}
         \caption{}
     \end{subfigure}\\[0.5ex]
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{C_1_2_1.png}
+        \includegraphics[width=\textwidth]{C_1_2_1.jpg}
         \caption{}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{C_1_2_2.png}
+        \includegraphics[width=\textwidth]{C_1_2_2.jpg}
         \caption{}
     \end{subfigure}\\[0.5ex]
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{C_1_3_1.png}
+        \includegraphics[width=\textwidth]{C_1_3_1.jpg}
         \caption{}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{C_1_3_2.png}
+        \includegraphics[width=\textwidth]{C_1_3_2.jpg}
         \caption{}
     \end{subfigure}
     \caption{Velocity magnitude contours for lid-driven cavity flow computed using central difference scheme. 
@@ -847,30 +946,30 @@ split them into 81×81 and 161×161 parts at first, and separate figures into th
 \begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{C_2_1_1.png}
+        \includegraphics[width=\textwidth]{C_2_1_1.jpg}
         \caption{}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{C_2_1_2.png}
+        \includegraphics[width=\textwidth]{C_2_1_2.jpg}
         \caption{}
     \end{subfigure}\\[0.5ex]
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{C_2_2_1.png}
+        \includegraphics[width=\textwidth]{C_2_2_1.jpg}
         \caption{}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{C_2_2_2.png}
+        \includegraphics[width=\textwidth]{C_2_2_2.jpg}
         \caption{}
     \end{subfigure}\\[0.5ex]
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{C_2_3_1.png}
+        \includegraphics[width=\textwidth]{C_2_3_1.jpg}
         \caption{}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{C_2_3_2.png}
+        \includegraphics[width=\textwidth]{C_2_3_2.jpg}
         \caption{}
     \end{subfigure}
     \caption{Velocity magnitude contours for lid-driven cavity flow computed using QUICK scheme. 
@@ -883,30 +982,30 @@ split them into 81×81 and 161×161 parts at first, and separate figures into th
 \begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{C_3_1_1.png}
+        \includegraphics[width=\textwidth]{C_3_1_1.jpg}
         \caption{}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{C_3_1_2.png}
+        \includegraphics[width=\textwidth]{C_3_1_2.jpg}
         \caption{}
     \end{subfigure}\\[0.5ex]
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{C_3_2_1.png}
+        \includegraphics[width=\textwidth]{C_3_2_1.jpg}
         \caption{}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{C_3_2_2.png}
+        \includegraphics[width=\textwidth]{C_3_2_2.jpg}
         \caption{}
     \end{subfigure}\\[0.5ex]
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{C_3_3_1.png}
+        \includegraphics[width=\textwidth]{C_3_3_1.jpg}
         \caption{}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.42\textwidth}
-        \includegraphics[width=\textwidth]{C_3_3_2.png}
+        \includegraphics[width=\textwidth]{C_3_3_2.jpg}
         \caption{}
     \end{subfigure}
     \caption{Velocity magnitude contours for lid-driven cavity flow computed using TVD-MUSCL scheme. 
@@ -932,34 +1031,34 @@ split them into 81×81 and 161×161 parts at first, and separate figures into th
 \begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{V_1_1_1.png}
+        \includegraphics[width=\textwidth]{V_1_1_1.jpg}
         \caption{}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.46\textwidth}
-        \includegraphics[width=\textwidth]{V_1_1_2.png}
+        \includegraphics[width=\textwidth]{V_1_1_2.jpg}
         \caption{}
     \end{subfigure}\\[0.5ex]
     \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{V_1_2_1.png}
+        \includegraphics[width=\textwidth]{V_1_2_1.jpg}
         \caption{}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.46\textwidth}
-        \includegraphics[width=\textwidth]{V_1_2_2.png}
+        \includegraphics[width=\textwidth]{V_1_2_2.jpg}
         \caption{}
     \end{subfigure}\\[0.5ex]
     \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{V_1_3_1.png}
+        \includegraphics[width=\textwidth]{V_1_3_1.jpg}
         \caption{}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.46\textwidth}
-        \includegraphics[width=\textwidth]{V_1_3_2.png}
+        \includegraphics[width=\textwidth]{V_1_3_2.jpg}
         \caption{}
     \end{subfigure}
     \caption{Velocity profiles for lid-driven cavity flow at $\text{Re} = 1000$ on $81\times81$ grid. 
-(a,c,e) $u$-velocity along vertical centreline; (b,d,f) $v$-velocity along horizontal centreline. 
+(a,c,e) $u$-velocity along vertical centerline; (b,d,f) $v$-velocity along horizontal centerline. 
 (a,b) Central difference scheme; (c,d) QUICK scheme; (e,f) TVD-MUSCL scheme. 
 Symbols: benchmark data from Ghia \textit{et al.}~(1982).}
     \label{fig:Velocity_Centerline_Grid 81x81}
@@ -969,34 +1068,34 @@ Symbols: benchmark data from Ghia \textit{et al.}~(1982).}
 \begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{V_2_1_1.png}
+        \includegraphics[width=\textwidth]{V_2_1_1.jpg}
         \caption{}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.46\textwidth}
-        \includegraphics[width=\textwidth]{V_2_1_2.png}
+        \includegraphics[width=\textwidth]{V_2_1_2.jpg}
         \caption{}
     \end{subfigure}\\[0.5ex]
     \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{V_2_2_1.png}
+        \includegraphics[width=\textwidth]{V_2_2_1.jpg}
         \caption{}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.46\textwidth}
-        \includegraphics[width=\textwidth]{V_2_2_2.png}
+        \includegraphics[width=\textwidth]{V_2_2_2.jpg}
         \caption{}
     \end{subfigure}\\[0.5ex]
     \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{V_2_3_1.png}
+        \includegraphics[width=\textwidth]{V_2_3_1.jpg}
         \caption{}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.46\textwidth}
-        \includegraphics[width=\textwidth]{V_2_3_2.png}
+        \includegraphics[width=\textwidth]{V_2_3_2.jpg}
         \caption{}
     \end{subfigure}
     \caption{Velocity profiles for lid-driven cavity flow at $\text{Re} = 1000$ on $161\times161$ grid. 
-(a,c,e) $u$-velocity along vertical centreline; (b,d,f) $v$-velocity along horizontal centreline. 
+(a,c,e) $u$-velocity along vertical centerline; (b,d,f) $v$-velocity along horizontal centerline. 
 (a,b) Central difference scheme; (c,d) QUICK scheme; (e,f) TVD-MUSCL scheme. 
 Symbols: benchmark data from Ghia \textit{et al.}~(1982).}
     \label{fig:Velocity_Centerline_Grid 161x161}
@@ -1007,38 +1106,38 @@ Symbols: benchmark data from Ghia \textit{et al.}~(1982).}
 \begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{V_1_4.png}
+        \includegraphics[width=\textwidth]{V_1_4.jpg}
         \caption{}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{V_2_4.png}
+        \includegraphics[width=\textwidth]{V_2_4.jpg}
         \caption{}
     \end{subfigure}\\[0.5ex]
     
     \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{V_1_5.png}
+        \includegraphics[width=\textwidth]{V_1_5.jpg}
         \caption{}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{V_2_5.png}
+        \includegraphics[width=\textwidth]{V_2_5.jpg}
         \caption{}
     \end{subfigure}\\[0.5ex]
     
     \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{V_1_6.png}
+        \includegraphics[width=\textwidth]{V_1_6.jpg}
         \caption{}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{V_2_6.png}
+        \includegraphics[width=\textwidth]{V_2_6.jpg}
         \caption{}
     \end{subfigure}
     
-   \caption{Centreline velocity profiles for different numerical schemes at $\text{Re} = 100$ (a,b), $1000$ (c,d), and $5000$ (e,f). 
+   \caption{centerline velocity profiles for different numerical schemes at $\text{Re} = 100$ (a,b), $1000$ (c,d), and $5000$ (e,f). 
 Left column: $81\times81$ grid; right column: $161\times161$ grid. 
-Each panel shows $u$-velocity (left) and $v$-velocity (right) along centrelines. 
+Each panel shows $u$-velocity (left) and $v$-velocity (right) along centerlines. 
 Symbols: Ghia \textit{et al.}~(1982).}
     \label{fig:velocity_comparison_schemes}
 \end{figure}
@@ -1047,30 +1146,44 @@ Symbols: Ghia \textit{et al.}~(1982).}
 \begin{figure}[htbp]
     \centering
     \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{V_3_1.png}
+        \includegraphics[width=\textwidth]{V_3_1.jpg}
         \caption{}
         \label{fig:grid_conv_cds}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{V_3_2.png}
+        \includegraphics[width=\textwidth]{V_3_2.jpg}
         \caption{}
         \label{fig:grid_conv_quick}
     \end{subfigure}\\[1ex]
     
     \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{V_3_3.png}
+        \includegraphics[width=\textwidth]{V_3_3.jpg}
         \caption{}
         \label{fig:grid_conv_tvd}
     \end{subfigure}
     
-    \caption{Grid convergence study for $u$-velocity profiles along vertical centreline at $\text{Re} = 5000$. 
+    \caption{Grid convergence study for $u$-velocity profiles along vertical centerline at $\text{Re} = 5000$. 
     (a) Central difference scheme; (b) QUICK scheme; (c) TVD-MUSCL scheme. 
     Four grid resolutions: $81\times81$, $113\times113$, $161\times161$, and $227\times227$. 
     Symbols: benchmark data from Ghia \textit{et al.}~(1982).}
     \label{fig:grid_convergence_re5000}
 \end{figure}
-\noindent Whatever discrete scheme I used, from figure \ref{fig:grid_convergence_re5000} we can see that when grid size is smaller(like $227\times227$), centerline velocity profiles for $u$-Velocity and $v$-Velocity are closer to the benchmark by Ghia\textrm{et al.}(1982).
+\noindent Figure \ref{fig:grid_convergence_re5000} shows a clear grid-convergence trend at $\text{Re}=5000$ for the
+vertical centerline $u$-velocity. The coarsest mesh ($81\times81$) smooths the near-wall shear layer and weakens the
+extreme velocity levels, while refinement to $161\times161$ and $227\times227$ recovers the sharp gradient close to the
+lid and the stronger core recirculation. This behavior is expected at high Reynolds number because the boundary layer is
+thin and requires more points to resolve.
+
+\noindent Scheme sensitivity is also visible. The CDs solution is more diffusive on coarse grids, so the deviation from the
+benchmark is larger in the high-gradient region. QUICK and TVD-MUSCL already track the benchmark reasonably well at
+$161\times161$, but the finest grid still improves the match near the velocity extrema. Overall, the comparison confirms
+that mesh refinement is essential for high-Re flows, and that higher-order schemes reduce numerical diffusion but still
+benefit from increased resolution.
+\noindent Whatever discrete scheme I used, from figure \ref{fig:grid_convergence_re5000} we can see that when grid size is smaller
+(like $227\times227$), centerline velocity profiles for $u$-Velocity and $v$-Velocity are closer to the benchmark by Ghia 
+\textrm{et al.}(1982).
+
 
 
 \newpage 
@@ -1079,7 +1192,7 @@ Symbols: Ghia \textit{et al.}~(1982).}
 For grid size $81 \times 81$, $113 \times 113$, $161 \times 161$, and $227 \times 227$,
 I have completed the evaluation of the normalized $L_{1}$ errors for both the centerline 
 $u$- and 
-$v$-velocity profiles at a Reynolds number of 5000 across all grid sizes, using Ghia’s benchmark data as the exact solution.
+$v$-velocity profiles at a Reynolds number of 5000 across all grid sizes, using Ghia��s benchmark data as the exact solution.
 \begin{table}[H]
 \centering
 \small
@@ -1126,7 +1239,7 @@ $227 \times 227$ & $-5.421$ & 0.279889 & $-4.882$ & 0.305895 & $-4.794$ & 0.3704
     mark size=4pt,
 ]
 
-% CDs - 中空圓圈(紅色) + 回歸線
+% CDs - ���Ŷ��(����) + �^�k�u
 \addplot[
     only marks, 
     mark=o, 
@@ -1143,7 +1256,7 @@ $227 \times 227$ & $-5.421$ & 0.279889 & $-4.882$ & 0.305895 & $-4.794$ & 0.3704
 
 \addlegendentry{CDs (slope=1.77375)}
 
-% QUICK - 中空圓圈(藍色) + 回歸線
+% QUICK - ���Ŷ��(�Ŧ�) + �^�k�u
 \addplot[
     only marks, 
     mark=o, 
@@ -1160,7 +1273,7 @@ $227 \times 227$ & $-5.421$ & 0.279889 & $-4.882$ & 0.305895 & $-4.794$ & 0.3704
 
 \addlegendentry{QUICK (slope=1.29119)}
 
-% TVD-MUSCL - 中空三角形(綠色) + 回歸線
+% TVD-MUSCL - ���ŤT����(���) + �^�k�u
 \addplot[
     only marks, 
     mark=triangle, 
@@ -1178,23 +1291,23 @@ $227 \times 227$ & $-5.421$ & 0.279889 & $-4.882$ & 0.305895 & $-4.794$ & 0.3704
 
 \addlegendentry{TVD-MUSCL (slope=1.08102)}
 
-% 添加公式註解(可選)
+% �K�[��������(�i��)
 \node[anchor=north west, font=\footnotesize] at (axis cs:-5.4,-3.0) 
 {$L_1 norm = \frac{1}{34}\left(\sum_{i=1}^{17}\sum_{j=1}^{17}(|u-u_{Ghia}|+|v-v_{Ghia}|)\right)$};
 
 \end{axis}
 \end{tikzpicture}
-\caption{Accuracy comparison for difference schemes based on $L_{1}$ norm at Re $=5000$. As the data shown in Table \ref{tab:error_comparison}, the slope of the line decided by $ln(L_{1}nrom)$ and $ln(dx)$ is the accuracy of the scheme. The accuracy for CDs, QUICK, and TVD-MUSCL are approximately 1.77375, 1.29119. and 1.08102, respectively.}
+\caption{Accuracy comparison for difference schemes based on $L_{1}$ norm at Re $=5000$. As the data shown in Table \ref{tab:error_comparison}, the slope of the line decided by $ln(L_{1}norm)$ and $ln(dx)$ is the accuracy of the scheme. The accuracy for CDs, QUICK, and TVD-MUSCL are approximately 1.77375, 1.29119. and 1.08102, respectively.}
 \label{fig:accuracy}
 \end{figure}
-In the 227×227 grid, the error compared with the benchmark for CDS is less than that for  QUICK.This may be due to the limited number of benchmark data points.The numerical solutions in the figure represent all my experience with various relaxation factor sets. The unusual finding is that inappropriate relaxation settings lead to either incorrect solutions or results that do not match the benchmark, so I maybe have a chance to find diference solution with different set.
+In the 227��227 grid, the error compared with the benchmark for CDS is less than that for  QUICK.This may be due to the limited number of benchmark data points.The numerical solutions in the figure represent all my experience with various relaxation factor sets. The unusual finding is that inappropriate relaxation settings lead to either incorrect solutions or results that do not match the benchmark, so I maybe have a chance to find different solution with different set.
 
 %% ============================================
 %% Appendix: Source Code
 %% ============================================
 \newpage
 \appendix
-% Appendix 設定：章節以 A, B, C 排列，子章節以 A.1, A.2 排列
+% Appendix �]�w�G���`�H A, B, C �ƦC�A�l���`�H A.1, A.2 �ƦC
 \renewcommand{\thesection}{\Alph{section}}
 \renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
 \renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
@@ -1331,7 +1444,7 @@ In the 227×227 grid, the error compared with the benchmark for CDS is less than
 
 This appendix provides the detailed discrete equations corresponding to the
 steps summarised in Table~B.1. The formulations follow the standard
-SIMPLE procedure for pressure–velocity coupling on a staggered grid.
+SIMPLE procedure for pressure�Vvelocity coupling on a staggered grid.
 
 \renewcommand\theequation{B.\arabic{equation}}
 \setcounter{equation}{0}
@@ -1339,11 +1452,11 @@ SIMPLE procedure for pressure–velocity coupling on a staggered grid.
 % ---------------------------------------------------
 \subsection*{B.1 \quad Step 1: Predicted Momentum Equation}
 
-The discrete $x$–momentum equation for the predicted velocity
-$u_{i,J}^{*,\,N+1/2}$ is written as
+The discrete $x$�Vmomentum equation for the predicted velocity
+$u_{i,J}^{*,\,N+1/2}$ is written with under-relaxation as
 \begin{equation}
 \begin{aligned}
-(a_P)_{i,J}^{*,\,N}\,u_{i,J}^{*,\,N+1/2}
+(a_P)_{i,J}^{*,\,N}\,\frac{u_{i,J}^{*,\,N+1/2}}{\alpha_u}
 &\;+\;(a_{WW})_{i,J}^{*,\,N} u_{i-2,J}^{*,\,N}
 +\;(a_W)_{i,J}^{*,\,N}   u_{i-1,J}^{*,\,N}
 +\;(a_E)_{i,J}^{*,\,N}   u_{i+1,J}^{*,\,N}
@@ -1353,7 +1466,8 @@ $u_{i,J}^{*,\,N+1/2}$ is written as
 +\;(a_N)_{i,J}^{*,\,N}   u_{i,J+1}^{*,\,N}
 +\;(a_{NN})_{i,J}^{*,\,N} u_{i,J+2}^{*,\,N}
 \\[3pt]
-&= -\,\frac{ p_{I,J}^{*,\,N} - p_{I-1,J}^{*,\,N} }{\rho}\,\delta y.
+&= -\,\frac{ p_{I,J}^{*,\,N} - p_{I-1,J}^{*,\,N} }{\rho}\,\delta y
++ \frac{1-\alpha_u}{\alpha_u}(a_P)_{i,J}^{*,\,N}u_{i,J}^{N}.
 \end{aligned}
 \label{eq:eq1}
 \end{equation}
@@ -1361,7 +1475,7 @@ $u_{i,J}^{*,\,N+1/2}$ is written as
 
 \subsection*{B.2 \quad Step 2: Pressure-Correction Equation}
 
-Using the discrete continuity constraint, the pressure–correction equation becomes
+Using the discrete continuity constraint, the pressure�Vcorrection equation becomes
 \begin{equation}
 \begin{aligned}
 &\Bigg(
@@ -1437,7 +1551,7 @@ A_e\,u_{i+1,J}^{*,\,N+1/2}
 \end{equation}
 
 % ---------------------------------------------------
-\subsection*{B.7–B.8 \quad Step 7–8: Update of Predicted Fields}
+\subsection*{B.7�VB.8 \quad Step 7�V8: Update of Predicted Fields}
 
 
 \begin{equation}
